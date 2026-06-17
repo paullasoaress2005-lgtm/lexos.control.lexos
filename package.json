@@ -1,0 +1,10 @@
+{
+  "name": "lexos-control-lexos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lexos Control - sistema interno demonstrativo para gestao juridica.",
+  "scripts": {
+    "start": "node server.cjs",
+    "build": "node --check script.js"
+  }
+}
