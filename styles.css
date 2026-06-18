@@ -283,7 +283,7 @@ a:focus-visible {
 .app-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 282px minmax(0, 1fr);
+  grid-template-columns: clamp(248px, 20vw, 282px) minmax(0, 1fr);
   transition: grid-template-columns 180ms ease;
 }
 
@@ -304,6 +304,7 @@ a:focus-visible {
   box-shadow: inset -1px 0 0 rgba(200, 167, 92, 0.08);
   color: var(--ink);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sidebar-head {
@@ -513,6 +514,7 @@ a:focus-visible {
   background: rgba(0, 6, 17, 0.88);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .topbar-actions,
@@ -703,6 +705,7 @@ a:focus-visible {
 
 .workspace {
   padding: 28px;
+  min-width: 0;
 }
 
 .sidebar-collapsed .workspace {
@@ -1367,43 +1370,317 @@ button.front-card {
   }
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1180px) and (min-width: 761px) {
   .app-shell,
-  .app-shell.sidebar-collapsed,
+  .app-shell.sidebar-collapsed {
+    grid-template-columns: 86px minmax(0, 1fr);
+  }
+
+  .login-shell {
+    grid-template-columns: 0.9fr 1.1fr;
+  }
+
+  .sidebar {
+    padding: 16px 10px;
+    overflow-x: hidden;
+  }
+
+  .sidebar-head {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 8px;
+    padding: 8px 0 14px;
+    margin-bottom: 14px;
+  }
+
+  .sidebar .brand-lockup {
+    justify-content: center;
+  }
+
+  .sidebar .brand-lockup span,
+  .nav button > span:nth-child(2),
+  .nav small,
+  .sidebar-footer {
+    display: none;
+  }
+
+  .sidebar .brand-mark {
+    width: 48px;
+    height: 48px;
+  }
+
+  .sidebar-toggle {
+    width: 44px;
+    height: 34px;
+    font-size: 20px;
+  }
+
+  .nav button {
+    min-height: 48px;
+    height: 48px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 0;
+  }
+
+  .nav button > span:first-child {
+    width: 38px;
+    height: 38px;
+  }
+
+  .nav button.active::before {
+    top: 8px;
+    bottom: 8px;
+  }
+
+  .topbar {
+    gap: 12px;
+    padding: 12px 18px;
+  }
+
+  .office-profile {
+    min-width: 230px;
+    transform: none;
+  }
+
+  .workspace {
+    padding: 22px;
+  }
+
+  .page-title {
+    align-items: flex-start;
+  }
+
+  .page-title h1 {
+    font-size: clamp(28px, 3.2vw, 34px);
+  }
+
+  .grid.metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid.three,
+  .grid.two,
+  .agenda-actions,
+  .filters,
+  .profile-page-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .nav button,
+  .office-main,
+  .metric,
+  .record,
+  .front-card,
+  .calendar-events button {
+    min-height: 44px;
+  }
+
+  .metric-link::after,
+  .record-link::after,
+  .metric-link:hover::after,
+  .record-link:hover::after {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  body {
+    background-size: 26px 26px;
+  }
+
   .login-shell {
     grid-template-columns: 1fr;
   }
 
-  .sidebar {
-    position: static;
-    height: auto;
-  }
-
-  .sidebar-collapsed .sidebar {
-    height: auto;
-  }
-
-  .grid.metrics,
-  .grid.three,
-  .grid.two,
-  .agenda-actions,
-  .filters,
-  .map-grid,
-  .profile-page-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .profile-page-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 720px) {
   .login-visual,
-  .login-aside,
-  .workspace,
+  .login-aside {
+    padding: 22px;
+  }
+
+  .login-visual {
+    min-height: 42vh;
+  }
+
+  .login-title h1 {
+    font-size: clamp(38px, 15vw, 58px);
+  }
+
+  .app-shell,
+  .app-shell.sidebar-collapsed {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar,
+  .sidebar-collapsed .sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    height: auto;
+    max-height: none;
+    padding: 10px 12px 12px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(0, 178, 255, 0.18);
+    overflow: visible;
+  }
+
+  .sidebar-head,
+  .sidebar-collapsed .sidebar-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+    padding: 0 0 10px;
+  }
+
+  .sidebar .brand-lockup,
+  .sidebar-collapsed .brand-lockup {
+    justify-content: flex-start;
+  }
+
+  .sidebar .brand-lockup span,
+  .sidebar-collapsed .brand-lockup span {
+    display: inline;
+    font-size: 12px;
+  }
+
+  .brand-mark,
+  .sidebar-collapsed .brand-mark {
+    width: 42px;
+    height: 42px;
+  }
+
+  .sidebar-toggle {
+    width: 42px;
+    height: 38px;
+    transform: rotate(90deg);
+  }
+
+  .nav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav button,
+  .sidebar-collapsed .nav button {
+    flex: 0 0 74px;
+    width: 74px;
+    height: 66px;
+    min-height: 66px;
+    grid-template-columns: 1fr;
+    grid-template-rows: 34px auto;
+    justify-items: center;
+    gap: 3px;
+    padding: 6px 4px;
+    scroll-snap-align: start;
+    text-align: center;
+  }
+
+  .nav button > span:first-child,
+  .sidebar-collapsed .nav button > span:first-child {
+    width: 34px;
+    height: 34px;
+  }
+
+  .nav button > span:nth-child(2),
+  .sidebar-collapsed .nav button > span:nth-child(2) {
+    display: block;
+    max-width: 66px;
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 10px;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nav small,
+  .sidebar-footer,
+  .sidebar-collapsed .nav small,
+  .sidebar-collapsed .sidebar-footer {
+    display: none;
+  }
+
+  .nav button.active::before,
+  .sidebar-collapsed .nav button.active::before {
+    left: 14px;
+    right: 14px;
+    top: auto;
+    bottom: 0;
+    width: auto;
+    height: 3px;
+  }
+
   .topbar {
-    padding: 20px;
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .search-input {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .office-profile {
+    min-width: 0;
+    width: 100%;
+    transform: none;
+  }
+
+  .office-main {
+    width: 100%;
+  }
+
+  .office-actions {
+    position: static;
+    margin-top: 8px;
+    width: 100%;
+  }
+
+  .workspace {
+    padding: 18px 14px 28px;
+  }
+
+  .page-title {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .page-title h1 {
+    font-size: clamp(30px, 10vw, 42px);
+    line-height: 0.98;
+  }
+
+  .toolbar {
+    width: 100%;
+  }
+
+  .toolbar .btn,
+  .page-title .btn {
+    width: 100%;
   }
 
   .grid.metrics,
@@ -1412,8 +1689,27 @@ button.front-card {
   .agenda-actions,
   .filters,
   .map-grid,
-  .profile-form-grid {
+  .profile-form-grid,
+  .profile-page-grid {
     grid-template-columns: 1fr;
+  }
+
+  .metric {
+    min-height: 120px;
+  }
+
+  .metric strong {
+    font-size: clamp(26px, 11vw, 34px);
+  }
+
+  .panel {
+    padding: 15px;
+  }
+
+  .record-head,
+  .panel-title {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .profile-hero {
@@ -1435,34 +1731,51 @@ button.front-card {
   }
 
   .calendar-cell {
-    min-height: 66px;
+    min-height: 72px;
     padding: 6px;
   }
 
-  .page-title,
-  .topbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .office-profile {
-    min-width: 0;
-  }
-
-  .office-actions {
-    position: static;
-    margin-top: 8px;
+  .calendar-events button {
+    font-size: 10px;
   }
 
   .table {
     display: block;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table th,
+  .table td {
+    min-width: 132px;
   }
 
   .drawer {
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
     width: auto;
+    max-height: min(76vh, 680px);
+  }
+}
+
+@media (max-width: 420px) {
+  .nav button,
+  .sidebar-collapsed .nav button {
+    flex-basis: 68px;
+    width: 68px;
+  }
+
+  .nav button > span:nth-child(2),
+  .sidebar-collapsed .nav button > span:nth-child(2) {
+    max-width: 60px;
+  }
+
+  .workspace {
+    padding-inline: 12px;
+  }
+
+  .front-card em {
+    text-align: left;
   }
 }

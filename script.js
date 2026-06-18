@@ -224,7 +224,7 @@ const navItems = [
 ];
 
 let state = loadData();
-let currentPage = "dashboard";
+let currentPage = pageFromLocation();
 let currentTab = "Dossiê rápido";
 let sidebarCollapsed = localStorage.getItem(SIDEBAR_KEY) === "true";
 let agendaMonthlyVisible = false;
@@ -245,6 +245,11 @@ function loadData() {
 
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function pageFromLocation() {
+  const page = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  return navItems.some(([id]) => id === page) || page === "perfil" || page === "config" ? page : "dashboard";
 }
 
 function money(value) {
@@ -274,7 +279,7 @@ function renderLogin() {
   document.getElementById("app").innerHTML = `
     <section class="login-shell">
       <div class="login-visual">
-        <div class="brand-lockup"><div class="brand-mark"><img class="brand-symbol" src="assets/lexos-symbol.png" alt="" /></div><span>LEX.OS</span></div>
+        <div class="brand-lockup"><div class="brand-mark"><img class="brand-symbol" src="/assets/lexos-symbol.png" alt="" /></div><span>LEX.OS</span></div>
         <div class="login-title">
           <span class="eyebrow">Sistema interno demonstrativo</span>
           <h1>Gestão jurídica sem dispersão.</h1>
@@ -315,13 +320,13 @@ function renderApp() {
     <section class="app-shell ${sidebarCollapsed ? "sidebar-collapsed" : ""}">
       <aside class="sidebar">
         <div class="sidebar-head">
-          <div class="brand-lockup"><div class="brand-mark"><img class="brand-symbol" src="assets/lexos-symbol.png" alt="" /></div><span>LEX.OS</span></div>
+          <div class="brand-lockup"><div class="brand-mark"><img class="brand-symbol" src="/assets/lexos-symbol.png" alt="" /></div><span>LEX.OS</span></div>
           <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="${sidebarCollapsed ? "Expandir menu lateral" : "Minimizar menu lateral"}" aria-pressed="${sidebarCollapsed}">
             <span aria-hidden="true">${sidebarCollapsed ? "›" : "‹"}</span>
           </button>
         </div>
         <nav class="nav">
-          ${navItems.map(([id, icon, label, meta]) => `<button data-page="${id}" class="${id === currentPage ? "active" : ""}" title="${label}"><span>${icon === "__logo__" ? '<img class="nav-symbol" src="assets/lexos-symbol.png" alt="" />' : icon}</span><span>${label}</span><small>${meta}</small></button>`).join("")}
+          ${navItems.map(([id, icon, label, meta]) => `<button data-page="${id}" class="${id === currentPage ? "active" : ""}" title="${label}"><span>${icon === "__logo__" ? '<img class="nav-symbol" src="/assets/lexos-symbol.png" alt="" />' : icon}</span><span>${label}</span><small>${meta}</small></button>`).join("")}
         </nav>
         <div class="sidebar-footer">
           <strong>${state.office.name}</strong><br />
@@ -334,7 +339,7 @@ function renderApp() {
           <input class="search-input" id="globalSearch" name="globalSearch" autocomplete="off" placeholder="Buscar cliente, processo, tarefa ou relatório…" />
           <div class="office-profile">
             <button class="office-main" id="officeProfileToggle" type="button" aria-expanded="false" aria-controls="officeProfileMenu">
-              <img src="assets/lexos-symbol.png" alt="" />
+              <img src="/assets/lexos-symbol.png" alt="" />
               <span>
                 <strong>${state.office.name}</strong>
                 <em>${state.office.mode} · ${state.office.owner}</em>
@@ -369,6 +374,7 @@ function renderApp() {
   document.querySelectorAll("[data-page]").forEach((button) => {
     button.addEventListener("click", () => {
       currentPage = button.dataset.page;
+      history.replaceState(null, "", currentPage === "dashboard" ? "/" : `/${currentPage}`);
       renderApp();
     });
   });
@@ -420,6 +426,7 @@ function renderPage() {
   };
   const render = pages[currentPage] || pages.dashboard;
   if (!pages[currentPage]) currentPage = "dashboard";
+  history.replaceState(null, "", currentPage === "dashboard" ? "/" : `/${currentPage}`);
   document.getElementById("screen").innerHTML = render();
   bindActions2();
 }
@@ -643,7 +650,7 @@ function renderProfile() {
       <article class="panel profile-identity-panel">
         <div class="profile-hero">
           <div class="profile-avatar-large">
-            <img src="assets/lexos-symbol.png" alt="" />
+            <img src="/assets/lexos-symbol.png" alt="" />
           </div>
           <div>
             <span class="record-meta">Ambiente local</span>
@@ -865,6 +872,7 @@ function bindActions2() {
     button.addEventListener("click", () => {
       document.getElementById("officeProfileMenu")?.classList.add("hidden");
       currentPage = button.dataset.shortcut;
+      history.replaceState(null, "", currentPage === "dashboard" ? "/" : `/${currentPage}`);
       renderApp();
       toast(`Atalho aberto: ${button.querySelector("span")?.textContent || "módulo"}.`);
     });
@@ -1115,6 +1123,7 @@ function openInternalWindow(title, content) {
   drawer.querySelectorAll("[data-shortcut]").forEach((button) => {
     button.addEventListener("click", () => {
       currentPage = button.dataset.shortcut;
+      history.replaceState(null, "", currentPage === "dashboard" ? "/" : `/${currentPage}`);
       drawer.classList.add("hidden");
       renderApp();
     });
@@ -1212,7 +1221,7 @@ function officeProfileContent() {
     <form class="drawer-form" data-demo-form>
       <div class="profile-editor">
         <div class="profile-photo-preview">
-          <img src="assets/lexos-symbol.png" alt="" />
+          <img src="/assets/lexos-symbol.png" alt="" />
         </div>
         <div class="field">
           <label for="officePhoto">Foto do perfil</label>
