@@ -583,44 +583,151 @@ function renderDashboard() {
 }
 
 function renderClients() {
+  const activeClients = state.clients.filter((client) => client.status === "Ativo").length;
+  const attentionClients = state.clients.filter((client) => client.situation !== "Operação regular" && client.status !== "Arquivado").length;
+  const pendingBilling = state.clients.filter((client) => client.pendingBilling).length;
   return `
     ${pageHeader("Clientes", "Cadastro e gestão de clientes", "Filtros por status, tipo, responsável e situação operacional.", '<button class="btn primary" data-action="simulate" data-title="Novo cliente">Cadastrar cliente</button>')}
     ${filters(["Status", "Tipo", "Responsável", "Situação"])}
-    ${table(["Cliente", "Tipo", "Responsável", "Situação", "Ações"], state.clients.map((client) => [
-      `<strong>${client.name}</strong><span class="record-meta">${client.id} · último contato ${client.lastContact}</span>`,
-      client.type,
-      client.owner,
-      `${riskBadge(client.situation)} ${client.pendingBilling ? riskBadge("Cobrança pendente") : ""} ${client.activeCase ? riskBadge("Processo ativo") : ""}`,
-      actionButtons(["Abrir detalhes", "Criar processo", "Criar tarefa", "Ver financeiro", "Arquivar cliente"], client.name),
-    ]))}
+    <section class="client-layout">
+      <aside class="client-summary panel">
+        <div class="panel-title"><h2>Carteira</h2><span>visão rápida</span></div>
+        <div class="client-summary-grid">
+          <div><strong>${activeClients}</strong><span>ativos</span></div>
+          <div><strong>${attentionClients}</strong><span>em atenção</span></div>
+          <div><strong>${pendingBilling}</strong><span>cobrança</span></div>
+        </div>
+        <div class="client-focus">
+          <span class="record-meta">Prioridade da carteira</span>
+          <h3>${state.clients.find((client) => client.situation === "Sem retorno")?.name || state.clients[0].name}</h3>
+          <p>Cliente com maior necessidade de retorno humano nesta demonstração.</p>
+          <button class="btn primary" type="button" data-action="simulate" data-title="Plano de contato da carteira">Gerar plano de contato</button>
+        </div>
+      </aside>
+      <div class="client-directory">
+        ${state.clients.map(clientCard).join("")}
+      </div>
+    </section>
   `;
 }
 
 function renderCases() {
+  const columns = [
+    ["Alto risco", (item) => item.risk === "Alto" || item.deadline === "vencido"],
+    ["Em atenção", (item) => item.status === "Em atenção" || item.risk === "Médio"],
+    ["Em andamento", (item) => item.status === "Ativo" && item.risk !== "Alto" && item.risk !== "Médio"],
+  ];
   return `
     ${pageHeader("Processos", "Carteira processual", "Controle de processos ativos, em atenção, suspensos, arquivados e de alto risco.", '<button class="btn primary" data-action="simulate" data-title="Lançar processo">Novo processo</button>')}
     ${filters(["Status", "Risco", "Área", "Responsável"])}
-    ${table(["Processo", "Cliente", "Área", "Risco e prazo", "Ações"], state.cases.map((item) => [
-      `<strong>${item.title}</strong><span class="record-meta">${item.id}</span>`,
-      clientName(item.clientId),
-      `${item.area}<br><span class="record-meta">${item.owner}</span>`,
-      `${riskBadge(item.risk)} ${riskBadge(item.deadline)}`,
-      actionButtons(["Abrir processo", "Criar tarefa", "Lançar prazo", "Registrar andamento", "Ver cliente", "Arquivar"], item.title),
-    ]))}
+    <section class="case-board">
+      ${columns.map(([label, matcher]) => {
+        const cases = state.cases.filter(matcher);
+        return `
+          <div class="case-column">
+            <div class="case-column-head">
+              <h2>${label}</h2>
+              <span>${cases.length}</span>
+            </div>
+            <div class="case-column-list">
+              ${cases.map(caseBoardCard).join("") || `<div class="empty-state">Nenhum processo nesta faixa.</div>`}
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </section>
   `;
 }
 
 function renderTasks() {
+  const delayed = state.tasks.filter((task) => task.status === "Atrasada").length;
+  const noOwner = state.tasks.filter((task) => task.owner === "Sem responsável").length;
+  const urgent = state.tasks.filter((task) => task.urgency === "Urgente" || task.urgency === "Alta").length;
   return `
     ${pageHeader("Tarefas", "Fila operacional de providências", "Controle de tarefas abertas, atrasadas, urgentes, próximas e sem responsável.", '<button class="btn primary" data-action="simulate" data-title="Nova tarefa">Criar tarefa</button>')}
     ${filters(["Status", "Urgência", "Responsável", "Vínculo"])}
-    ${table(["Tarefa", "Cliente", "Processo", "Prazo", "Ações"], state.tasks.map((task) => [
-      `<strong>${task.title}</strong><span class="record-meta">${task.id} · ${task.owner}</span>`,
-      clientName(task.clientId),
-      task.caseId,
-      `${riskBadge(task.status)} ${riskBadge(task.urgency)}<br><span class="record-meta">${task.due}</span>`,
-      actionButtons(["Concluir", "Editar prazo", "Abrir processo", "Abrir cliente", "Arquivar tarefa"], task.title),
-    ]))}
+    <section class="task-layout">
+      <div class="task-rail panel">
+        <div class="panel-title"><h2>Comando</h2><span>operação</span></div>
+        <div class="task-pulse danger"><strong>${delayed}</strong><span>atrasada</span></div>
+        <div class="task-pulse warn"><strong>${urgent}</strong><span>urgentes/altas</span></div>
+        <div class="task-pulse info"><strong>${noOwner}</strong><span>sem responsável</span></div>
+      </div>
+      <div class="task-queue">
+        ${state.tasks.map(taskQueueItem).join("")}
+      </div>
+    </section>
+  `;
+}
+
+function clientCard(client) {
+  const initials = client.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+  return `
+    <article class="client-card">
+      <div class="client-avatar" aria-hidden="true">${initials}</div>
+      <div class="client-card-main">
+        <div class="client-card-head">
+          <div>
+            <span class="record-meta">${client.id} · ${client.type}</span>
+            <h2>${client.name}</h2>
+          </div>
+          <strong>${client.owner}</strong>
+        </div>
+        <div class="client-contact-row">
+          <span>Último contato ${client.lastContact}</span>
+          <span>${client.status}</span>
+        </div>
+        <div class="badges">${riskBadge(client.situation)}${client.pendingBilling ? riskBadge("Cobrança pendente") : ""}${client.activeCase ? riskBadge("Processo ativo") : ""}</div>
+        <div class="client-actions">${actionButtons(["Abrir detalhes", "Criar processo", "Criar tarefa", "Ver financeiro", "Arquivar cliente"], client.name)}</div>
+      </div>
+    </article>
+  `;
+}
+
+function caseBoardCard(item) {
+  return `
+    <article class="case-card">
+      <div class="case-id">${item.id}</div>
+      <h3>${item.title}</h3>
+      <p>${clientName(item.clientId)}</p>
+      <div class="case-meta-grid">
+        <span>${item.area}</span>
+        <span>${item.owner}</span>
+        <span>${money(item.value)}</span>
+      </div>
+      <div class="badges">${riskBadge(item.risk)}${riskBadge(item.deadline)}</div>
+      <div class="case-actions">${actionButtons(["Abrir processo", "Criar tarefa", "Lançar prazo", "Registrar andamento"], item.title)}</div>
+    </article>
+  `;
+}
+
+function taskQueueItem(task) {
+  const tone = task.status === "Atrasada" ? "danger" : task.urgency === "Urgente" || task.urgency === "Alta" ? "warn" : "info";
+  return `
+    <article class="task-item ${tone}">
+      <div class="task-check" aria-hidden="true"></div>
+      <div class="task-content">
+        <div class="task-head">
+          <div>
+            <span class="record-meta">${task.id} · ${task.due}</span>
+            <h2>${task.title}</h2>
+          </div>
+          <div class="badges">${riskBadge(task.status)}${riskBadge(task.urgency)}</div>
+        </div>
+        <div class="task-context">
+          <span>${clientName(task.clientId)}</span>
+          <span>${task.caseId}</span>
+          <span>${task.owner}</span>
+        </div>
+        <div class="task-actions">${actionButtons(["Concluir", "Editar prazo", "Abrir processo", "Abrir cliente", "Arquivar tarefa"], task.title)}</div>
+      </div>
+    </article>
   `;
 }
 
