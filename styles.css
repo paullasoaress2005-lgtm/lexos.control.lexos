@@ -61,9 +61,11 @@ body {
 
 html[data-theme="light"] body {
   background:
-    linear-gradient(90deg, rgba(10, 26, 42, 0.055) 1px, transparent 1px),
-    linear-gradient(rgba(10, 26, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(5, 43, 82, 0.095) 1px, transparent 1px),
+    linear-gradient(rgba(5, 43, 82, 0.075) 1px, transparent 1px),
     var(--bg);
+  background-attachment: fixed;
+  background-size: 32px 32px;
 }
 
 button,
