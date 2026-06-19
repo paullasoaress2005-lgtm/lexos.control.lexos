@@ -29,6 +29,8 @@ html[data-theme="light"] {
   --ink: #071120;
   --muted: #405061;
   --line: rgba(10, 26, 42, 0.18);
+  --brand: #007fc1;
+  --accent: #b48627;
   --shadow: 0 22px 60px rgba(10, 26, 42, 0.12);
   --topbar-bg: rgba(245, 248, 252, 0.92);
   --field-bg: #ffffff;
@@ -317,6 +319,18 @@ select:disabled {
   font-weight: 800;
 }
 
+html[data-theme="light"] .btn {
+  background: #ffffff;
+  color: #071120;
+  border-color: rgba(10, 26, 42, 0.2);
+}
+
+html[data-theme="light"] .btn:hover,
+html[data-theme="light"] .btn:focus-visible {
+  background: #edf4fb;
+  border-color: rgba(0, 127, 193, 0.42);
+}
+
 .btn.primary {
   border-color: var(--accent);
   background: var(--accent);
@@ -369,6 +383,62 @@ select:disabled {
   color: var(--ink);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+html[data-theme="light"] .sidebar {
+  --ink: #eaf4ff;
+  --muted: #b9c7d6;
+  --line: rgba(234, 244, 255, 0.16);
+  --brand: #00b2ff;
+  --accent: #c8a75c;
+  background:
+    linear-gradient(180deg, rgba(0, 178, 255, 0.1), transparent 28%),
+    linear-gradient(90deg, rgba(200, 167, 92, 0.1), transparent 1px),
+    #071321;
+  color: #eaf4ff;
+}
+
+html[data-theme="light"] .sidebar .brand-lockup,
+html[data-theme="light"] .sidebar .brand-lockup span,
+html[data-theme="light"] .sidebar .nav button,
+html[data-theme="light"] .sidebar-footer {
+  color: #eaf4ff;
+}
+
+html[data-theme="light"] .sidebar .nav button {
+  border-color: rgba(234, 244, 255, 0.12);
+}
+
+html[data-theme="light"] .sidebar .nav button:not(.active):not(:hover) {
+  color: #b9c7d6;
+}
+
+html[data-theme="light"] .sidebar .nav small {
+  color: #d7e5f5;
+}
+
+html[data-theme="light"] .sidebar .nav button > span:first-child {
+  color: #eaf4ff;
+  background: rgba(234, 244, 255, 0.08);
+  border-color: rgba(234, 244, 255, 0.16);
+}
+
+html[data-theme="light"] .sidebar .nav button.active,
+html[data-theme="light"] .sidebar .nav button:hover {
+  color: #ffffff;
+  background:
+    linear-gradient(90deg, rgba(0, 178, 255, 0.26), rgba(0, 178, 255, 0.09)),
+    rgba(234, 244, 255, 0.045);
+}
+
+html[data-theme="light"] .sidebar-toggle {
+  color: #eaf4ff;
+  background: rgba(0, 178, 255, 0.12);
+}
+
+html[data-theme="light"] .sidebar-footer {
+  background: rgba(0, 6, 17, 0.3);
+  border-color: rgba(200, 167, 92, 0.26);
 }
 
 .sidebar-head {
@@ -633,6 +703,23 @@ select:disabled {
   text-align: left;
 }
 
+html[data-theme="light"] .office-main {
+  background: #ffffff;
+  color: #071120;
+  border-color: rgba(10, 26, 42, 0.18);
+  box-shadow: 0 8px 22px rgba(10, 26, 42, 0.08);
+}
+
+html[data-theme="light"] .office-main:hover,
+html[data-theme="light"] .office-main:focus-visible {
+  background: #edf4fb;
+  border-color: rgba(0, 127, 193, 0.38);
+}
+
+html[data-theme="light"] .office-main em {
+  color: #405061;
+}
+
 .office-main:hover,
 .office-main:focus-visible {
   border-color: rgba(0, 178, 255, 0.42);
@@ -691,6 +778,18 @@ select:disabled {
   border-radius: 8px;
   background: rgba(10, 26, 42, 0.98);
   box-shadow: var(--shadow);
+}
+
+html[data-theme="light"] .office-actions {
+  background: #ffffff;
+  border-color: rgba(10, 26, 42, 0.18);
+  box-shadow: 0 18px 48px rgba(10, 26, 42, 0.16);
+}
+
+html[data-theme="light"] .office-actions .btn.warn {
+  background: rgba(255, 107, 95, 0.12);
+  color: #a22a24;
+  border-color: rgba(162, 42, 36, 0.26);
 }
 
 .office-actions .btn {
