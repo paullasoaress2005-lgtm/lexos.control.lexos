@@ -414,7 +414,6 @@ function renderApp() {
             <div class="office-actions hidden" id="officeProfileMenu">
               <button class="btn" type="button" data-shortcut="perfil">Perfil</button>
               <button class="btn" type="button" data-shortcut="config">Configurações</button>
-              <button class="btn" type="button" data-history-back>Retornar à página anterior</button>
               <button class="btn" id="resetData" type="button">Restaurar</button>
               <button class="btn warn" id="logout" type="button">Sair</button>
             </div>
@@ -422,6 +421,9 @@ function renderApp() {
         </header>
         <div class="workspace" id="screen"></div>
       </main>
+      <button class="return-control" type="button" data-history-back aria-label="Retornar à página anterior" title="Retornar à página anterior">
+        <span aria-hidden="true">←</span>
+      </button>
     </section>
     <aside class="drawer hidden" id="drawer"></aside>
   `;
