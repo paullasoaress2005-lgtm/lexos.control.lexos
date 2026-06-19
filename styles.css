@@ -1964,23 +1964,23 @@ html[data-theme="light"] .table tr:hover td {
 .agenda-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(220px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .agenda-action-card {
   min-width: 0;
-  min-height: 112px;
+  min-height: 74px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: rgba(234, 244, 255, 0.05);
   color: var(--ink);
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
+  grid-template-columns: 38px minmax(0, 1fr);
   grid-template-rows: auto auto;
-  column-gap: 12px;
+  column-gap: 10px;
   align-content: center;
-  padding: 16px;
+  padding: 10px 14px;
   text-align: left;
   transition:
     border-color 180ms ease,
@@ -1998,8 +1998,8 @@ html[data-theme="light"] .table tr:hover td {
 }
 
 .agenda-action-card span {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border: 1px solid rgba(0, 178, 255, 0.38);
   border-radius: 6px;
   background: rgba(0, 178, 255, 0.13);
@@ -2007,14 +2007,17 @@ html[data-theme="light"] .table tr:hover td {
   display: grid;
   grid-row: 1 / span 2;
   place-items: center;
-  font-family: "Segoe UI", sans-serif;
-  font-size: 24px;
-  font-weight: 900;
+}
+
+.agenda-action-card span svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .agenda-action-card strong {
   display: block;
-  font-size: 20px;
+  font-size: 17px;
   line-height: 1.15;
   overflow-wrap: anywhere;
 }
@@ -2022,9 +2025,9 @@ html[data-theme="light"] .table tr:hover td {
 .agenda-action-card em {
   color: var(--muted);
   font-family: "Segoe UI", sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   font-style: normal;
-  line-height: 1.45;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 

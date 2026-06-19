@@ -288,6 +288,15 @@ function navIcon(icon) {
   return icons[icon] || icons.dashboard;
 }
 
+function agendaActionIcon(icon) {
+  const svgAttrs = 'viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"';
+  const icons = {
+    event: `<svg ${svgAttrs}><path d="M7 3v4"/><path d="M17 3v4"/><path d="M5 6h14v15H5z"/><path d="M5 10h14"/><path d="M12 13v5"/><path d="M9.5 15.5h5"/></svg>`,
+    month: `<svg ${svgAttrs}><path d="M7 3v4"/><path d="M17 3v4"/><path d="M4 8h16"/><path d="M5 5h14v16H5z"/><path d="M8 12h2"/><path d="M12 12h2"/><path d="M16 12h2"/><path d="M8 16h2"/><path d="M12 16h2"/></svg>`,
+  };
+  return icons[icon] || icons.event;
+}
+
 function cropProfilePhoto(file, size = 420) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1507,12 +1516,12 @@ function renderAgenda2() {
     ${pageHeader("Agenda", "Agenda jurídica operacional", "Audiências, reuniões, follow-ups e prazos críticos em um mesmo quadro.")}
     <section class="agenda-actions">
       <button class="agenda-action-card" type="button" data-action="simulate" data-title="Adicionar evento">
-        <span>+</span>
+        <span>${agendaActionIcon("event")}</span>
         <strong>Adicionar evento</strong>
         <em>Audiência, reunião, follow-up ou prazo crítico</em>
       </button>
       <button class="agenda-action-card" type="button" data-action="monthly-calendar">
-        <span>□</span>
+        <span>${agendaActionIcon("month")}</span>
         <strong>Calendário mensal</strong>
         <em>Visualizar eventos distribuídos por dia</em>
       </button>
