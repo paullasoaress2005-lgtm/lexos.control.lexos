@@ -214,16 +214,16 @@ const demoSeed = {
 };
 
 const navItems = [
-  ["dashboard", "⌂", "Dashboard", "Operação"],
-  ["clientes", "♙", "Clientes", "Carteira"],
-  ["processos", "§", "Processos", "Prazos"],
-  ["tarefas", "✓", "Tarefas", "Fila"],
-  ["agenda", "▣", "Agenda", "Jurídica"],
-  ["financeiro", "$", "Financeiro", "Recebíveis"],
-  ["socios", "♙♙", "Painel dos Sócios", "Decisão"],
-  ["relatorios", "▤", "Relatórios", "Assistidos"],
-  ["central", "__logo__", "Central LEX.OS", "Supervisão"],
-  ["onboarding", "→", "Onboarding", "Roteiro"],
+  ["dashboard", "dashboard", "Dashboard"],
+  ["clientes", "client", "Clientes"],
+  ["processos", "scale", "Processos"],
+  ["tarefas", "task", "Tarefas"],
+  ["agenda", "calendar", "Agenda"],
+  ["financeiro", "finance", "Financeiro"],
+  ["socios", "partners", "Painel dos Sócios"],
+  ["relatorios", "report", "Relatórios"],
+  ["central", "lexos", "Central LEX.OS"],
+  ["onboarding", "onboarding", "Onboarding"],
 ];
 
 let state = loadData();
@@ -269,6 +269,23 @@ function saveProfile() {
 
 function avatarSrc() {
   return profileState.photo || "/assets/lexos-symbol.png";
+}
+
+function navIcon(icon) {
+  const svgAttrs = 'viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"';
+  const icons = {
+    dashboard: `<svg ${svgAttrs}><path d="M4 10.5 12 4l8 6.5"/><path d="M6.5 9.5V20h11V9.5"/><path d="M10 20v-5h4v5"/></svg>`,
+    client: `<svg ${svgAttrs}><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`,
+    scale: `<svg ${svgAttrs}><path d="M12 3v18"/><path d="M5 6h14"/><path d="m7 6-4 7h8L7 6Z"/><path d="m17 6-4 7h8l-4-7Z"/></svg>`,
+    task: `<svg ${svgAttrs}><path d="m5 13 4 4L19 7"/><path d="M4 4h16v16H4z"/></svg>`,
+    calendar: `<svg ${svgAttrs}><path d="M7 3v4"/><path d="M17 3v4"/><path d="M4 8h16"/><path d="M5 5h14v16H5z"/><path d="M8 12h2"/><path d="M14 12h2"/><path d="M8 16h2"/></svg>`,
+    finance: `<svg ${svgAttrs}><path d="M12 3c4.42 0 8 1.57 8 3.5S16.42 10 12 10 4 8.43 4 6.5 7.58 3 12 3Z"/><path d="M4 6.5v5C4 13.43 7.58 15 12 15s8-1.57 8-3.5v-5"/><path d="M4 11.5v5C4 18.43 7.58 20 12 20s8-1.57 8-3.5v-5"/></svg>`,
+    partners: `<svg ${svgAttrs}><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M2.5 21a6.5 6.5 0 0 1 13 0"/><path d="M17 10a3 3 0 1 0-1-5.8"/><path d="M16.5 14.5A5.5 5.5 0 0 1 21.5 21"/></svg>`,
+    report: `<svg ${svgAttrs}><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h6"/><path d="M9 9h2"/></svg>`,
+    lexos: '<img class="nav-symbol" src="/assets/lexos-symbol.png" alt="" />',
+    onboarding: `<svg ${svgAttrs}><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/><path d="M4 5v14"/></svg>`,
+  };
+  return icons[icon] || icons.dashboard;
 }
 
 function loadTheme() {
@@ -389,7 +406,7 @@ function renderApp() {
           </button>
         </div>
         <nav class="nav">
-          ${navItems.map(([id, icon, label, meta]) => `<button data-page="${id}" class="${id === currentPage ? "active" : ""}" title="${label}"><span>${icon === "__logo__" ? '<img class="nav-symbol" src="/assets/lexos-symbol.png" alt="" />' : icon}</span><span>${label}</span><small>${meta}</small></button>`).join("")}
+          ${navItems.map(([id, icon, label]) => `<button data-page="${id}" class="${id === currentPage ? "active" : ""}" title="${label}"><span class="nav-icon">${navIcon(icon)}</span><span>${label}</span></button>`).join("")}
         </nav>
         <div class="sidebar-footer">
           <strong>${state.office.name}</strong><br />

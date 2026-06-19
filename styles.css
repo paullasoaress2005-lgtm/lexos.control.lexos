@@ -420,8 +420,8 @@ html[data-theme="light"] .sidebar .nav small {
 
 html[data-theme="light"] .sidebar .nav button > span:first-child {
   color: #eaf4ff;
-  background: rgba(234, 244, 255, 0.08);
-  border-color: rgba(234, 244, 255, 0.16);
+  background: transparent;
+  border-color: transparent;
 }
 
 html[data-theme="light"] .sidebar .nav button.active,
@@ -525,10 +525,10 @@ html[data-theme="light"] .sidebar-footer {
   background: transparent;
   color: var(--muted);
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-columns: 34px minmax(0, 1fr);
   align-items: center;
-  gap: 11px;
-  padding: 9px 11px 9px 9px;
+  gap: 12px;
+  padding: 9px 12px;
   text-align: left;
   font-family: "Segoe UI", sans-serif;
   font-size: 14px;
@@ -543,24 +543,28 @@ html[data-theme="light"] .sidebar-footer {
 
 .nav button > span:first-child {
   display: inline-grid;
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   place-items: center;
-  border: 1px solid rgba(234, 244, 255, 0.1);
-  border-radius: 7px;
-  background: rgba(234, 244, 255, 0.045);
-  color: var(--ink);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
   font-family: "Segoe UI Symbol", "Segoe UI", sans-serif;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   transition:
-    background 180ms ease,
-    border-color 180ms ease,
     color 180ms ease;
 }
 
+.nav-icon svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
 .nav-symbol {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
   display: block;
 }
@@ -576,8 +580,8 @@ html[data-theme="light"] .sidebar-footer {
 .sidebar-collapsed .nav button > span:first-child {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
 }
 
 .sidebar-collapsed .nav button.active::before {
@@ -609,15 +613,11 @@ html[data-theme="light"] .sidebar-footer {
 
 .nav button.active > span:first-child,
 .nav button:hover > span:first-child {
-  border-color: rgba(0, 178, 255, 0.45);
-  background: rgba(0, 178, 255, 0.16);
   color: var(--brand);
 }
 
 .nav small {
-  color: rgba(201, 211, 221, 0.7);
-  font-size: 11px;
-  font-weight: 800;
+  display: none;
 }
 
 .sidebar-footer {
