@@ -1,6 +1,9 @@
 ﻿const STORAGE_KEY = "lexos-control-demo-v1";
 const SESSION_KEY = "lexos-control-session";
 const SIDEBAR_KEY = "lexos-control-sidebar-collapsed";
+const PROFILE_KEY = "lexos-control-profile";
+const THEME_KEY = "lexos-control-theme";
+const INTERNAL_DEPTH_KEY = "lexos-control-internal-depth";
 
 const demoSeed = {
   office: {
@@ -228,6 +231,11 @@ let currentPage = pageFromLocation();
 let currentTab = "Dossiê rápido";
 let sidebarCollapsed = localStorage.getItem(SIDEBAR_KEY) === "true";
 let agendaMonthlyVisible = false;
+let profileState = loadProfile();
+let pendingProfilePhoto = "";
+let internalNavigationDepth = Number(sessionStorage.getItem(INTERNAL_DEPTH_KEY) || "0");
+
+applyTheme(loadTheme());
 
 function loadData() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -247,9 +255,64 @@ function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+function loadProfile() {
+  try {
+    return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveProfile() {
+  localStorage.setItem(PROFILE_KEY, JSON.stringify(profileState));
+}
+
+function avatarSrc() {
+  return profileState.photo || "/assets/lexos-symbol.png";
+}
+
+function loadTheme() {
+  return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
+}
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem(THEME_KEY, theme);
+}
+
+function toggleTheme() {
+  const next = loadTheme() === "light" ? "dark" : "light";
+  applyTheme(next);
+  renderApp();
+}
+
 function pageFromLocation() {
   const page = window.location.pathname.replace(/^\/+|\/+$/g, "");
   return navItems.some(([id]) => id === page) || page === "perfil" || page === "config" ? page : "dashboard";
+}
+
+function pageUrl(page) {
+  return page === "dashboard" ? "/" : `/${page}`;
+}
+
+function goToPage(page, options = {}) {
+  const normalized = navItems.some(([id]) => id === page) || page === "perfil" || page === "config" ? page : "dashboard";
+  currentPage = normalized;
+  const method = options.replace ? "replaceState" : "pushState";
+  history[method]({ lexos: true, page: currentPage }, "", pageUrl(currentPage));
+  if (!options.replace) {
+    internalNavigationDepth += 1;
+    sessionStorage.setItem(INTERNAL_DEPTH_KEY, String(internalNavigationDepth));
+  }
+  renderApp();
+}
+
+function returnToPreviousPage() {
+  if (internalNavigationDepth > 0) {
+    history.back();
+    return;
+  }
+  goToPage("dashboard", { replace: true });
 }
 
 function money(value) {
@@ -337,9 +400,12 @@ function renderApp() {
         <header class="topbar">
           <label class="sr-only" for="globalSearch">Busca global</label>
           <input class="search-input" id="globalSearch" name="globalSearch" autocomplete="off" placeholder="Buscar cliente, processo, tarefa ou relatório…" />
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar modo claro e escuro" title="Alternar tema">
+            <span aria-hidden="true">${loadTheme() === "light" ? "☀" : "☾"}</span>
+          </button>
           <div class="office-profile">
             <button class="office-main" id="officeProfileToggle" type="button" aria-expanded="false" aria-controls="officeProfileMenu">
-              <img src="/assets/lexos-symbol.png" alt="" />
+              <img class="${profileState.photo ? "profile-photo" : ""}" src="${avatarSrc()}" alt="" />
               <span>
                 <strong>${state.office.name}</strong>
                 <em>${state.office.mode} · ${state.office.owner}</em>
@@ -348,6 +414,7 @@ function renderApp() {
             <div class="office-actions hidden" id="officeProfileMenu">
               <button class="btn" type="button" data-shortcut="perfil">Perfil</button>
               <button class="btn" type="button" data-shortcut="config">Configurações</button>
+              <button class="btn" type="button" data-history-back>Retornar à página anterior</button>
               <button class="btn" id="resetData" type="button">Restaurar</button>
               <button class="btn warn" id="logout" type="button">Sair</button>
             </div>
@@ -370,12 +437,15 @@ function renderApp() {
     const expanded = menu.classList.toggle("hidden") === false;
     document.getElementById("officeProfileToggle").setAttribute("aria-expanded", String(expanded));
   });
+  document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+  document.querySelector("[data-history-back]")?.addEventListener("click", () => {
+    document.getElementById("officeProfileMenu")?.classList.add("hidden");
+    returnToPreviousPage();
+  });
 
   document.querySelectorAll("[data-page]").forEach((button) => {
     button.addEventListener("click", () => {
-      currentPage = button.dataset.page;
-      history.replaceState(null, "", currentPage === "dashboard" ? "/" : `/${currentPage}`);
-      renderApp();
+      goToPage(button.dataset.page);
     });
   });
   document.getElementById("logout").addEventListener("click", () => {
@@ -426,7 +496,6 @@ function renderPage() {
   };
   const render = pages[currentPage] || pages.dashboard;
   if (!pages[currentPage]) currentPage = "dashboard";
-  history.replaceState(null, "", currentPage === "dashboard" ? "/" : `/${currentPage}`);
   document.getElementById("screen").innerHTML = render();
   bindActions2();
 }
@@ -438,7 +507,7 @@ function renderDashboard() {
   const overdueFinance = state.finance.filter((item) => item.status === "Vencido").reduce((sum, item) => sum + item.amount, 0);
 
   return `
-    ${pageHeader("Dashboard executivo", "Operação do escritório", "Visão geral de clientes, processos, tarefas, financeiro e Central LEX.OS.", '<button class="btn primary" data-action="simulate" data-title="Resumo executivo">Gerar apoio assistido</button>')}
+    ${pageHeader("Dashboard executivo", "Operação do escritório", "Visão geral de clientes, processos, tarefas, financeiro e Central LEX.OS.", '<button class="btn primary" data-action="simulate" data-title="Adicionar rápido">+ Adicionar</button><button class="btn" data-action="simulate" data-title="Resumo executivo">Gerar apoio assistido</button>')}
     <section class="grid metrics">
       ${metric("Clientes ativos", state.clients.filter((item) => item.status === "Ativo").length, `${attentionClients} em atenção`, "clientes")}
       ${metric("Processos", state.cases.length, `${riskyCases} com risco ou prazo crítico`, "processos")}
@@ -448,7 +517,7 @@ function renderDashboard() {
     </section>
     <section class="grid two" style="margin-top:14px">
       <div class="panel">
-        <div class="panel-title"><h2>Fila de prioridades humanas</h2><span>decisão</span></div>
+        <div class="panel-title"><h2>Fila de prioridades</h2><span>decisão</span></div>
         <div class="list">
           ${record("Prazo vencido em processo trabalhista", "PROC-1034 exige revisão humana antes de nova movimentação.", ["Prazo", "Risco médio", "Rafael Lima"], "processos")}
           ${record("Cliente sem retorno", "João Ricardo Nunes está há 21 dias sem retorno registrado.", ["Follow-up", "Carteira"], "clientes")}
@@ -459,7 +528,7 @@ function renderDashboard() {
         <div class="panel-title"><h2>Mapa das frentes</h2><span>escritório</span></div>
         <div class="map-grid">
           ${front("Carteira", state.clients.length, "clientes monitorados", "clientes")}
-          ${front("Contencioso", state.cases.length, "processos em carteira", "processos")}
+          ${front("Processos em andamento", state.cases.length, "processos ativos", "processos")}
           ${front("Operação", state.tasks.length, "providências abertas", "tarefas")}
           ${front("Agenda", state.agenda.length, "eventos jurídicos", "agenda")}
           ${front("Recebíveis", money(state.finance.reduce((s, f) => s + f.amount, 0)), "total demonstrativo", "financeiro")}
@@ -631,9 +700,9 @@ function renderCentral() {
 
 function renderSettings() {
   return `
-    ${pageHeader("Configurações", "Identidade, equipe e ambiente", "Modo claro, perfil do usuário, permissões, LGPD, auditoria e implantação.")}
+    ${pageHeader("Configurações", "Identidade, equipe e ambiente", "Perfil do usuário, permissões, LGPD, auditoria e implantação.")}
     <section class="grid three">
-      ${settingsCard("Identidade do escritório", ["Nome: " + state.office.name, "Responsável: " + state.office.owner, "Tema: modo claro"])}
+      ${settingsCard("Identidade do escritório", ["Nome: " + state.office.name, "Responsável: " + state.office.owner, "Preferências visuais no topo direito"])}
       ${settingsCard("Equipe e permissões", ["Sócios", "Advogados", "Operação", "Financeiro"])}
       ${settingsCard("Segurança, LGPD e auditoria", ["Dados fictícios", "Sem integrações externas", "Logs locais demonstrativos"])}
       ${settingsCard("Preferências operacionais", ["Prazos críticos", "Follow-up de clientes", "Alertas financeiros"])}
@@ -648,9 +717,9 @@ function renderProfile() {
     ${pageHeader("Perfil", "Perfil do escritório", "Dados de identificação, contato e recuperação do ambiente demonstrativo.", '<button class="btn" type="button" data-shortcut="config">Abrir configurações</button>')}
     <section class="profile-page-grid">
       <article class="panel profile-identity-panel">
-        <div class="profile-hero">
-          <div class="profile-avatar-large">
-            <img src="/assets/lexos-symbol.png" alt="" />
+          <div class="profile-hero">
+            <div class="profile-avatar-large">
+            <img class="${profileState.photo ? "profile-photo" : ""}" src="${avatarSrc()}" alt="" />
           </div>
           <div>
             <span class="record-meta">Ambiente local</span>
@@ -662,6 +731,7 @@ function renderProfile() {
           <div class="field profile-file">
             <label for="profilePhoto">Foto do perfil</label>
             <input id="profilePhoto" name="profilePhoto" type="file" accept="image/png,image/jpeg,image/webp" />
+            <small>A imagem será salva neste navegador até a integração com back-end.</small>
           </div>
           ${field("Nome do escritório", state.office.name)}
           ${field("Responsável principal", state.office.owner)}
@@ -871,12 +941,12 @@ function bindActions2() {
   document.querySelectorAll("[data-shortcut]").forEach((button) => {
     button.addEventListener("click", () => {
       document.getElementById("officeProfileMenu")?.classList.add("hidden");
-      currentPage = button.dataset.shortcut;
-      history.replaceState(null, "", currentPage === "dashboard" ? "/" : `/${currentPage}`);
-      renderApp();
+      goToPage(button.dataset.shortcut);
       toast(`Atalho aberto: ${button.querySelector("span")?.textContent || "módulo"}.`);
     });
   });
+
+  bindProfileForm(document.getElementById("screen"));
 
   document.querySelectorAll("[data-action='simulate']").forEach((button) => {
     button.addEventListener("click", () => {
@@ -919,8 +989,80 @@ function bindActions2() {
   }
 }
 
+function bindProfileForm(root) {
+  if (!root || currentPage !== "perfil") return;
+  const form = root.querySelector(".profile-form-grid");
+  const input = root.querySelector("#profilePhoto");
+  const preview = root.querySelector(".profile-avatar-large img");
+  if (!form || form.dataset.profileBound === "true") return;
+  form.dataset.profileBound = "true";
+
+  if (input) {
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        pendingProfilePhoto = String(reader.result || "");
+        if (preview && pendingProfilePhoto) {
+          preview.src = pendingProfilePhoto;
+          preview.classList.add("profile-photo");
+        }
+      });
+      reader.readAsDataURL(file);
+    });
+  }
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (pendingProfilePhoto) {
+      profileState.photo = pendingProfilePhoto;
+      pendingProfilePhoto = "";
+    }
+    const textInputs = [...form.querySelectorAll("input")].filter((item) => item.type !== "file");
+    const officeName = textInputs[0]?.value?.trim();
+    const ownerName = textInputs[1]?.value?.trim();
+    if (officeName) state.office.name = officeName;
+    if (ownerName) state.office.owner = ownerName;
+    saveData();
+    saveProfile();
+    toast("Perfil salvo no modo demo.");
+    renderApp();
+  });
+}
+
 function actionContent(title) {
   const normalized = title.toLowerCase();
+
+  if (normalized.includes("adicionar rápido")) {
+    return `
+      <div class="drawer-body">
+        <p>Criação rápida pelo Dashboard. Use os atalhos abaixo para abrir o fluxo correspondente sem sair procurando nos módulos.</p>
+        <div class="quick-create-grid">
+          <button class="quick-create-card" type="button" data-action="simulate" data-title="Novo processo">
+            <strong>Novo processo</strong>
+            <span>Cliente, área, risco e responsável.</span>
+          </button>
+          <button class="quick-create-card" type="button" data-action="simulate" data-title="Novo cliente">
+            <strong>Novo cliente</strong>
+            <span>Cadastro básico e situação operacional.</span>
+          </button>
+          <button class="quick-create-card" type="button" data-action="simulate" data-title="Nova cobrança">
+            <strong>Item financeiro</strong>
+            <span>Recebível, status e vencimento.</span>
+          </button>
+          <button class="quick-create-card" type="button" data-action="simulate" data-title="Adicionar evento">
+            <strong>Evento/agenda</strong>
+            <span>Audiência, reunião, prazo ou follow-up.</span>
+          </button>
+          <button class="quick-create-card" type="button" data-shortcut="tarefas">
+            <strong>Outros atalhos</strong>
+            <span>Abrir fila operacional.</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
 
   if (normalized.includes("novo cliente") || normalized.includes("cadastrar cliente")) {
     return formShell("Cliente", [
@@ -1122,10 +1264,8 @@ function openInternalWindow(title, content) {
   });
   drawer.querySelectorAll("[data-shortcut]").forEach((button) => {
     button.addEventListener("click", () => {
-      currentPage = button.dataset.shortcut;
-      history.replaceState(null, "", currentPage === "dashboard" ? "/" : `/${currentPage}`);
       drawer.classList.add("hidden");
-      renderApp();
+      goToPage(button.dataset.shortcut);
     });
   });
   drawer.querySelectorAll("[data-action='simulate']").forEach((button) => {
@@ -1221,7 +1361,7 @@ function officeProfileContent() {
     <form class="drawer-form" data-demo-form>
       <div class="profile-editor">
         <div class="profile-photo-preview">
-          <img src="/assets/lexos-symbol.png" alt="" />
+          <img class="${profileState.photo ? "profile-photo" : ""}" src="${avatarSrc()}" alt="" />
         </div>
         <div class="field">
           <label for="officePhoto">Foto do perfil</label>
@@ -1251,6 +1391,15 @@ function monthlyCalendarSection() {
     </section>
   `;
 }
+
+window.addEventListener("popstate", () => {
+  internalNavigationDepth = Math.max(0, internalNavigationDepth - 1);
+  sessionStorage.setItem(INTERNAL_DEPTH_KEY, String(internalNavigationDepth));
+  currentPage = pageFromLocation();
+  if (sessionStorage.getItem(SESSION_KEY) === "demo") renderApp();
+});
+
+history.replaceState({ lexos: true, page: currentPage }, "", pageUrl(currentPage));
 
 if (sessionStorage.getItem(SESSION_KEY) === "demo") {
   renderApp();

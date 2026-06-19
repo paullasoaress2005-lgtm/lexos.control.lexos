@@ -14,7 +14,28 @@
   --info: #00b2ff;
   --shadow: 0 24px 70px rgba(0, 178, 255, 0.14);
   --radius: 8px;
+  --topbar-bg: rgba(0, 6, 17, 0.88);
+  --field-bg: rgba(234, 244, 255, 0.06);
+  --select-bg: #071120;
+  --select-option-bg: #0a1a2a;
+  --select-option-ink: #eaf4ff;
   color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  --bg: #f5f8fc;
+  --panel: #ffffff;
+  --panel-strong: #edf4fb;
+  --ink: #071120;
+  --muted: #405061;
+  --line: rgba(10, 26, 42, 0.18);
+  --shadow: 0 22px 60px rgba(10, 26, 42, 0.12);
+  --topbar-bg: rgba(245, 248, 252, 0.92);
+  --field-bg: #ffffff;
+  --select-bg: #ffffff;
+  --select-option-bg: #ffffff;
+  --select-option-ink: #071120;
+  color-scheme: light;
 }
 
 * {
@@ -34,6 +55,13 @@ body {
   font-family: Georgia, "Times New Roman", serif;
   overflow-x: hidden;
   -webkit-tap-highlight-color: rgba(0, 178, 255, 0.22);
+}
+
+html[data-theme="light"] body {
+  background:
+    linear-gradient(90deg, rgba(10, 26, 42, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(10, 26, 42, 0.045) 1px, transparent 1px),
+    var(--bg);
 }
 
 button,
@@ -223,10 +251,46 @@ a:focus-visible {
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: rgba(234, 244, 255, 0.06);
+  background: var(--field-bg);
   color: var(--ink);
   padding: 10px 12px;
   outline: none;
+}
+
+.field select,
+select {
+  background-color: var(--select-bg);
+  color: var(--ink);
+  color-scheme: inherit;
+}
+
+.field select option,
+select option {
+  background: var(--select-option-bg);
+  color: var(--select-option-ink);
+}
+
+.field select option:checked,
+select option:checked,
+.field select option:hover,
+select option:hover {
+  background: var(--brand);
+  color: #000611;
+}
+
+.field select:disabled,
+select:disabled {
+  opacity: 0.68;
+  color: var(--muted);
+}
+
+.field small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .field input:focus,
@@ -511,10 +575,31 @@ a:focus-visible {
   justify-content: space-between;
   gap: 18px;
   padding: 14px 28px;
-  background: rgba(0, 6, 17, 0.88);
+  background: var(--topbar-bg);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(200, 167, 92, 0.34);
+  border-radius: 8px;
+  background: rgba(200, 167, 92, 0.09);
+  color: var(--accent);
+  font-family: "Segoe UI Symbol", "Segoe UI", sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  border-color: rgba(200, 167, 92, 0.62);
+  background: rgba(200, 167, 92, 0.16);
 }
 
 .topbar-actions,
@@ -560,6 +645,15 @@ a:focus-visible {
   object-fit: contain;
 }
 
+.office-main img.profile-photo,
+.profile-avatar-large img.profile-photo,
+.profile-photo-preview img.profile-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
 .office-main span {
   min-width: 0;
   display: grid;
@@ -603,6 +697,45 @@ a:focus-visible {
   min-height: 34px;
   padding: 7px 10px;
   font-size: 12px;
+}
+
+.quick-create-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quick-create-card {
+  min-height: 100px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(234, 244, 255, 0.045);
+  color: var(--ink);
+  text-align: left;
+}
+
+.quick-create-card:hover,
+.quick-create-card:focus-visible {
+  border-color: rgba(0, 178, 255, 0.46);
+  background: rgba(0, 178, 255, 0.1);
+}
+
+.quick-create-card strong,
+.quick-create-card span {
+  display: block;
+}
+
+.quick-create-card strong {
+  margin-bottom: 6px;
+  font-size: 16px;
+}
+
+.quick-create-card span {
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .profile-editor {
@@ -1689,6 +1822,7 @@ button.front-card {
   .agenda-actions,
   .filters,
   .map-grid,
+  .quick-create-grid,
   .profile-form-grid,
   .profile-page-grid {
     grid-template-columns: 1fr;
