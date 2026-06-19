@@ -288,6 +288,30 @@ function navIcon(icon) {
   return icons[icon] || icons.dashboard;
 }
 
+function cropProfilePhoto(file, size = 420) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("error", () => reject(new Error("Não foi possível ler a imagem.")));
+    reader.addEventListener("load", () => {
+      const image = new Image();
+      image.addEventListener("error", () => reject(new Error("Não foi possível carregar a imagem.")));
+      image.addEventListener("load", () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
+        const context = canvas.getContext("2d");
+        const sourceSize = Math.min(image.naturalWidth, image.naturalHeight);
+        const sourceX = Math.max(0, (image.naturalWidth - sourceSize) / 2);
+        const sourceY = Math.max(0, (image.naturalHeight - sourceSize) / 2);
+        context.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, size, size);
+        resolve(canvas.toDataURL("image/jpeg", 0.86));
+      });
+      image.src = String(reader.result || "");
+    });
+    reader.readAsDataURL(file);
+  });
+}
+
 function loadTheme() {
   return localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark";
 }
@@ -749,8 +773,9 @@ function renderProfile() {
         <form class="profile-form-grid" data-demo-form>
           <div class="field profile-file">
             <label for="profilePhoto">Foto do perfil</label>
-            <input id="profilePhoto" name="profilePhoto" type="file" accept="image/png,image/jpeg,image/webp" />
-            <small>A imagem será salva neste navegador até a integração com back-end.</small>
+            <input id="profilePhoto" name="profilePhoto" type="file" accept="image/png,image/jpeg,image/webp" data-profile-photo-input />
+            <small>A imagem será recortada em 1:1, exibida em círculo e salva neste navegador.</small>
+            <button class="btn ghost profile-remove-photo" type="button" data-remove-profile-photo ${profileState.photo ? "" : "disabled"}>Remover foto</button>
           </div>
           ${field("Nome do escritório", state.office.name)}
           ${field("Responsável principal", state.office.owner)}
@@ -1011,24 +1036,40 @@ function bindActions2() {
 function bindProfileForm(root) {
   if (!root || currentPage !== "perfil") return;
   const form = root.querySelector(".profile-form-grid");
-  const input = root.querySelector("#profilePhoto");
+  const input = root.querySelector("[data-profile-photo-input]");
   const preview = root.querySelector(".profile-avatar-large img");
+  const removePhoto = root.querySelector("[data-remove-profile-photo]");
   if (!form || form.dataset.profileBound === "true") return;
   form.dataset.profileBound = "true";
 
   if (input) {
-    input.addEventListener("change", () => {
+    input.addEventListener("change", async () => {
       const file = input.files?.[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.addEventListener("load", () => {
-        pendingProfilePhoto = String(reader.result || "");
+      try {
+        pendingProfilePhoto = await cropProfilePhoto(file);
         if (preview && pendingProfilePhoto) {
           preview.src = pendingProfilePhoto;
           preview.classList.add("profile-photo");
         }
-      });
-      reader.readAsDataURL(file);
+        if (removePhoto) removePhoto.disabled = false;
+      } catch {
+        toast("Não foi possível preparar a foto.");
+      }
+    });
+  }
+
+  if (removePhoto) {
+    removePhoto.addEventListener("click", () => {
+      pendingProfilePhoto = "";
+      profileState.photo = "";
+      saveProfile();
+      if (preview) {
+        preview.src = avatarSrc();
+        preview.classList.remove("profile-photo");
+      }
+      removePhoto.disabled = true;
+      toast("Foto de perfil removida.");
     });
   }
 
@@ -1268,7 +1309,8 @@ function openInternalWindow(title, content) {
     <div class="demo-note">Registro demonstrativo. Nenhum dado foi enviado para fora do navegador.</div>
   `;
   document.getElementById("closeDrawer").addEventListener("click", () => drawer.classList.add("hidden"));
-  drawer.querySelectorAll("[data-demo-form]").forEach((form) => {
+  bindOfficeProfileDrawer(drawer);
+  drawer.querySelectorAll("[data-demo-form]:not([data-profile-drawer-form])").forEach((form) => {
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       toast("Registro salvo no modo demo.");
@@ -1293,6 +1335,64 @@ function openInternalWindow(title, content) {
     });
   });
   document.getElementById("closeDrawer").focus();
+}
+
+function bindOfficeProfileDrawer(drawer) {
+  const form = drawer.querySelector("[data-profile-drawer-form]");
+  if (!form) return;
+  const input = form.querySelector("[data-profile-photo-input]");
+  const preview = form.querySelector(".profile-photo-preview img");
+  const removePhoto = form.querySelector("[data-remove-profile-photo]");
+
+  if (input) {
+    input.addEventListener("change", async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      try {
+        pendingProfilePhoto = await cropProfilePhoto(file);
+        if (preview && pendingProfilePhoto) {
+          preview.src = pendingProfilePhoto;
+          preview.classList.add("profile-photo");
+        }
+        if (removePhoto) removePhoto.disabled = false;
+      } catch {
+        toast("Não foi possível preparar a foto.");
+      }
+    });
+  }
+
+  if (removePhoto) {
+    removePhoto.addEventListener("click", () => {
+      pendingProfilePhoto = "";
+      profileState.photo = "";
+      saveProfile();
+      if (preview) {
+        preview.src = avatarSrc();
+        preview.classList.remove("profile-photo");
+      }
+      removePhoto.disabled = true;
+      toast("Foto de perfil removida.");
+      renderApp();
+    });
+  }
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const textInputs = [...form.querySelectorAll("input")].filter((item) => item.type !== "file");
+    const officeName = textInputs[0]?.value?.trim();
+    const ownerName = textInputs[1]?.value?.trim();
+    if (officeName) state.office.name = officeName;
+    if (ownerName) state.office.owner = ownerName;
+    if (pendingProfilePhoto) {
+      profileState.photo = pendingProfilePhoto;
+      pendingProfilePhoto = "";
+    }
+    saveData();
+    saveProfile();
+    toast("Perfil salvo no modo demo.");
+    drawer.classList.add("hidden");
+    renderApp();
+  });
 }
 
 function renderAgenda2() {
@@ -1377,14 +1477,16 @@ function monthlyCalendarContent() {
 
 function officeProfileContent() {
   return `
-    <form class="drawer-form" data-demo-form>
+    <form class="drawer-form" data-demo-form data-profile-drawer-form>
       <div class="profile-editor">
         <div class="profile-photo-preview">
           <img class="${profileState.photo ? "profile-photo" : ""}" src="${avatarSrc()}" alt="" />
         </div>
         <div class="field">
           <label for="officePhoto">Foto do perfil</label>
-          <input id="officePhoto" name="officePhoto" type="file" accept="image/png,image/jpeg,image/webp" />
+          <input id="officePhoto" name="officePhoto" type="file" accept="image/png,image/jpeg,image/webp" data-profile-photo-input />
+          <small>Recorte automático em 1:1 para exibição circular.</small>
+          <button class="btn ghost profile-remove-photo" type="button" data-remove-profile-photo ${profileState.photo ? "" : "disabled"}>Remover foto</button>
         </div>
       </div>
       ${field("Nome do escritório", state.office.name)}

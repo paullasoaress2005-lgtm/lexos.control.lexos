@@ -773,7 +773,10 @@ html[data-theme="light"] .office-main em {
 .office-main img {
   width: 36px;
   height: 36px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
   object-fit: contain;
+  background: rgba(0, 6, 17, 0.2);
 }
 
 .office-main img.profile-photo,
@@ -781,7 +784,7 @@ html[data-theme="light"] .office-main em {
 .profile-photo-preview img.profile-photo {
   width: 100%;
   height: 100%;
-  border-radius: inherit;
+  border-radius: 50%;
   object-fit: cover;
 }
 
@@ -892,15 +895,18 @@ html[data-theme="light"] .office-actions .btn.warn {
   width: 78px;
   height: 78px;
   border: 1px solid rgba(0, 178, 255, 0.24);
-  border-radius: 8px;
+  border-radius: 50%;
   background: rgba(0, 6, 17, 0.34);
   display: grid;
   place-items: center;
+  overflow: hidden;
 }
 
 .profile-photo-preview img {
   width: 64px;
   height: 64px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
   object-fit: contain;
 }
 
@@ -940,13 +946,16 @@ html[data-theme="light"] .office-actions .btn.warn {
   display: grid;
   place-items: center;
   border: 1px solid rgba(0, 178, 255, 0.32);
-  border-radius: 10px;
+  border-radius: 50%;
   background: rgba(0, 178, 255, 0.06);
+  overflow: hidden;
 }
 
 .profile-avatar-large img {
   width: 74px;
   height: 74px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
   object-fit: contain;
 }
 
@@ -967,6 +976,16 @@ html[data-theme="light"] .office-actions .btn.warn {
   flex-wrap: wrap;
   gap: 10px;
   padding-top: 4px;
+}
+
+.profile-remove-photo {
+  width: fit-content;
+  margin-top: 10px;
+}
+
+.profile-remove-photo:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
 }
 
 .profile-status-list {
