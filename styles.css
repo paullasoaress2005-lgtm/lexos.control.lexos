@@ -1517,6 +1517,85 @@ button.front-card {
   margin-bottom: 16px;
 }
 
+.module-filter-panel {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(234, 244, 255, 0.045);
+}
+
+.module-filter-selects {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.module-filter-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chips button {
+  min-height: 30px;
+  border: 1px solid rgba(0, 178, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(0, 178, 255, 0.1);
+  color: var(--brand);
+  padding: 6px 10px;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.module-empty {
+  grid-column: 1 / -1;
+  padding: 22px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  text-align: center;
+}
+
+.module-empty strong,
+.module-empty span {
+  display: block;
+}
+
+.module-empty strong {
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.filterable-card.hidden,
+.module-empty.hidden {
+  display: none;
+}
+
+html[data-theme="light"] .module-filter-panel {
+  border-color: #dce8f2;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 30px rgba(8, 18, 42, 0.05);
+}
+
+html[data-theme="light"] .filter-chips button {
+  border-color: #b9e8fa;
+  background: #e1f6fe;
+  color: #0578b5;
+}
+
 .client-layout {
   display: grid;
   grid-template-columns: minmax(260px, 0.34fr) minmax(0, 1fr);
@@ -1661,6 +1740,17 @@ button.front-card {
   font-family: "Segoe UI", sans-serif;
   font-size: 12px;
   font-weight: 700;
+}
+
+.client-case-line,
+.task-content p,
+.finance-card p,
+.finance-guard p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .client-actions,
@@ -1843,6 +1933,87 @@ button.front-card {
   font-size: 20px;
   line-height: 1.18;
   overflow-wrap: anywhere;
+}
+
+.finance-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.34fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.finance-ledger {
+  display: grid;
+  gap: 12px;
+}
+
+.finance-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: 0 10px 30px rgba(0, 178, 255, 0.08);
+}
+
+.finance-card h2 {
+  margin: 4px 0 0;
+  font-size: 20px;
+  line-height: 1.16;
+}
+
+.finance-card > strong {
+  color: var(--ok);
+  font-size: 22px;
+  white-space: nowrap;
+}
+
+.finance-card.expense > strong {
+  color: var(--danger);
+}
+
+.finance-card .badges,
+.finance-actions {
+  grid-column: 1 / -1;
+}
+
+.finance-guard {
+  position: sticky;
+  top: 92px;
+}
+
+.availability-note {
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 178, 255, 0.28);
+  border-radius: 8px;
+  color: var(--brand);
+  background: rgba(0, 178, 255, 0.08);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.availability-note.danger {
+  border-color: rgba(255, 107, 95, 0.34);
+  background: rgba(255, 107, 95, 0.12);
+  color: var(--danger);
+}
+
+html[data-theme="light"] .finance-card {
+  border-color: #dce8f2;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 30px rgba(8, 18, 42, 0.08);
+}
+
+html[data-theme="light"] .finance-card > strong {
+  color: #247a5a;
+}
+
+html[data-theme="light"] .finance-card.expense > strong {
+  color: #b42318;
 }
 
 html[data-theme="light"] .client-summary-grid div,
@@ -2075,11 +2246,17 @@ html[data-theme="light"] .table tr:hover td {
   border: 1px solid rgba(234, 244, 255, 0.12);
   border-radius: 6px;
   background: rgba(234, 244, 255, 0.04);
+  color: inherit;
   padding: 8px;
+  text-align: left;
 }
 
 .calendar-cell.muted {
   opacity: 0.35;
+}
+
+.calendar-cell:disabled {
+  cursor: default;
 }
 
 .calendar-cell.has-event {
@@ -2100,7 +2277,8 @@ html[data-theme="light"] .table tr:hover td {
   gap: 4px;
 }
 
-.calendar-events button {
+.calendar-events span,
+.calendar-events em {
   min-width: 0;
   border: 1px solid rgba(0, 178, 255, 0.22);
   border-radius: 4px;
@@ -2117,10 +2295,11 @@ html[data-theme="light"] .table tr:hover td {
   white-space: nowrap;
 }
 
-.calendar-events button:hover,
-.calendar-events button:focus-visible {
-  border-color: var(--brand);
+.calendar-events em {
+  border-style: dashed;
   color: var(--brand);
+  font-style: normal;
+  text-align: center;
 }
 
 .module-tabs button {
@@ -2666,12 +2845,14 @@ html[data-theme="light"] .table tr:hover td {
 
 @media (max-width: 1180px) {
   .client-layout,
-  .task-layout {
+  .task-layout,
+  .finance-layout {
     grid-template-columns: 1fr;
   }
 
   .client-summary,
-  .task-rail {
+  .task-rail,
+  .finance-guard {
     position: static;
   }
 
@@ -2682,17 +2863,31 @@ html[data-theme="light"] .table tr:hover td {
   .case-board {
     grid-template-columns: 1fr;
   }
+
+  .module-filter-selects {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
   .client-directory,
-  .client-summary-grid {
+  .client-summary-grid,
+  .module-filter-selects {
     grid-template-columns: 1fr;
   }
 
   .client-card,
-  .task-item {
+  .task-item,
+  .finance-card {
     grid-template-columns: 1fr;
+  }
+
+  .module-filter-footer {
+    flex-direction: column;
+  }
+
+  .module-filter-footer .btn {
+    width: 100%;
   }
 
   .client-avatar,

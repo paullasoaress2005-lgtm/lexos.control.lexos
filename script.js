@@ -19,6 +19,11 @@ const demoSeed = {
       status: "Ativo",
       owner: "Marina Costa",
       situation: "Em atenção",
+      document: "12.345.678/0001-90",
+      email: "juridico@almeidatorres.demo",
+      phone: "(98) 98888-0101",
+      createdAt: "2026-05-10",
+      updatedAt: "2026-06-18",
       lastContact: "há 12 dias",
       pendingBilling: true,
       activeCase: true,
@@ -30,6 +35,11 @@ const demoSeed = {
       status: "Ativo",
       owner: "Rafael Lima",
       situation: "Sem retorno",
+      document: "123.456.789-10",
+      email: "joao.nunes@email.demo",
+      phone: "(98) 98888-0202",
+      createdAt: "2026-04-22",
+      updatedAt: "2026-06-01",
       lastContact: "há 21 dias",
       pendingBilling: false,
       activeCase: true,
@@ -41,6 +51,11 @@ const demoSeed = {
       status: "Ativo",
       owner: "Bianca Reis",
       situation: "Operação regular",
+      document: "22.333.444/0001-55",
+      email: "contato@aurorasaude.demo",
+      phone: "(98) 98888-0303",
+      createdAt: "2026-03-08",
+      updatedAt: "2026-06-17",
       lastContact: "ontem",
       pendingBilling: false,
       activeCase: true,
@@ -52,6 +67,11 @@ const demoSeed = {
       status: "Arquivado",
       owner: "Marina Costa",
       situation: "Encerrado",
+      document: "987.654.321-00",
+      email: "carolina.mendes@email.demo",
+      phone: "(98) 98888-0404",
+      createdAt: "2026-02-14",
+      updatedAt: "2026-05-04",
       lastContact: "há 45 dias",
       pendingBilling: false,
       activeCase: false,
@@ -64,9 +84,15 @@ const demoSeed = {
       title: "Ação de cobrança contratual",
       area: "Cível",
       status: "Ativo",
+      statusPrincipal: "Em andamento",
+      prioridadeOperacional: "Exige decisão",
+      exigeDecisao: true,
+      revisaoUrgente: false,
       risk: "Alto",
       owner: "Marina Costa",
       deadline: "vence amanhã",
+      nextDeadline: "2026-06-23",
+      lastMove: "há 2 dias",
       value: 78000,
     },
     {
@@ -75,9 +101,15 @@ const demoSeed = {
       title: "Defesa em reclamação trabalhista",
       area: "Trabalhista",
       status: "Em atenção",
+      statusPrincipal: "Em acompanhamento",
+      prioridadeOperacional: "Revisão urgente",
+      exigeDecisao: true,
+      revisaoUrgente: true,
       risk: "Médio",
       owner: "Rafael Lima",
       deadline: "vencido",
+      nextDeadline: "2026-06-17",
+      lastMove: "há 12 dias",
       value: 22000,
     },
     {
@@ -86,9 +118,15 @@ const demoSeed = {
       title: "Mandado de segurança tributário",
       area: "Tributário",
       status: "Ativo",
+      statusPrincipal: "Em andamento",
+      prioridadeOperacional: "Não urgente",
+      exigeDecisao: false,
+      revisaoUrgente: false,
       risk: "Baixo",
       owner: "Bianca Reis",
       deadline: "em 6 dias",
+      nextDeadline: "2026-06-24",
+      lastMove: "ontem",
       value: 130000,
     },
   ],
@@ -101,6 +139,8 @@ const demoSeed = {
       owner: "Rafael Lima",
       status: "Atrasada",
       urgency: "Urgente",
+      category: "Processual",
+      description: "Confirmar providência antes de qualquer nova movimentação.",
       due: "ontem",
     },
     {
@@ -111,6 +151,8 @@ const demoSeed = {
       owner: "Sem responsável",
       status: "Aberta",
       urgency: "Alta",
+      category: "Atendimento",
+      description: "Contato ativo para evitar perda de oportunidade comercial.",
       due: "hoje",
     },
     {
@@ -121,6 +163,8 @@ const demoSeed = {
       owner: "Bianca Reis",
       status: "Aberta",
       urgency: "Normal",
+      category: "Interna",
+      description: "Organizar síntese para reunião dos sócios.",
       due: "em 3 dias",
     },
   ],
@@ -130,8 +174,13 @@ const demoSeed = {
       title: "Audiência trabalhista",
       type: "Audiência",
       date: "Hoje, 14:30",
+      start: "2026-06-18T14:30",
+      end: "2026-06-18T15:30",
       origin: "PROC-1034",
+      clientId: "CLI-002",
+      caseId: "PROC-1034",
       owner: "Rafael Lima",
+      owners: ["Rafael Lima"],
       status: "Crítico",
     },
     {
@@ -139,8 +188,13 @@ const demoSeed = {
       title: "Reunião com Almeida & Torres",
       type: "Reunião",
       date: "Amanhã, 09:00",
+      start: "2026-06-19T09:00",
+      end: "2026-06-19T10:00",
       origin: "CLI-001",
+      clientId: "CLI-001",
+      caseId: "",
       owner: "Marina Costa",
+      owners: ["Marina Costa", "Rafael Lima"],
       status: "Confirmado",
     },
     {
@@ -148,8 +202,13 @@ const demoSeed = {
       title: "Prazo de manifestação",
       type: "Prazo",
       date: "Em 6 dias",
+      start: "2026-06-24T16:00",
+      end: "2026-06-24T16:30",
       origin: "PROC-1041",
+      clientId: "CLI-003",
+      caseId: "PROC-1041",
       owner: "Bianca Reis",
+      owners: ["Bianca Reis"],
       status: "Próximo",
     },
   ],
@@ -158,25 +217,73 @@ const demoSeed = {
       id: "FIN-401",
       clientId: "CLI-001",
       description: "Honorários mensais",
+      type: "Entrada",
+      category: "Recebível",
       amount: 8500,
       status: "Vencido",
+      expectedDate: "2026-06-10",
+      paidDate: "",
+      owner: "Marina Costa",
+      visibility: "Sócios",
       due: "há 8 dias",
     },
     {
       id: "FIN-402",
       clientId: "CLI-003",
       description: "Êxito previsto",
+      type: "Entrada",
+      category: "Recebível",
       amount: 18000,
       status: "A receber",
+      expectedDate: "2026-06-28",
+      paidDate: "",
+      owner: "Bianca Reis",
+      visibility: "Sócios",
       due: "em 10 dias",
     },
     {
       id: "FIN-403",
       clientId: "CLI-002",
       description: "Parcela de entrada",
+      type: "Entrada",
+      category: "Recebido",
       amount: 3200,
       status: "Recebido",
+      expectedDate: "2026-06-03",
+      paidDate: "2026-06-03",
+      owner: "Rafael Lima",
+      visibility: "Equipe",
       due: "este mês",
+    },
+    {
+      id: "FIN-404",
+      clientId: "CLI-001",
+      caseId: "PROC-1029",
+      description: "Custas e diligência externa",
+      type: "Saída",
+      category: "Despesa processual",
+      amount: 1450,
+      status: "Pago",
+      expectedDate: "2026-06-12",
+      paidDate: "2026-06-12",
+      owner: "Marina Costa",
+      visibility: "Sócios",
+      due: "este mês",
+    },
+    {
+      id: "FIN-405",
+      clientId: "",
+      caseId: "",
+      description: "Assinaturas operacionais do escritório",
+      type: "Saída",
+      category: "Despesa administrativa",
+      amount: 980,
+      status: "Pendente",
+      expectedDate: "2026-06-25",
+      paidDate: "",
+      owner: "Marina Costa",
+      visibility: "Sócios",
+      due: "em 7 dias",
     },
   ],
   reports: [
@@ -241,18 +348,32 @@ function loadData() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(demoSeed));
-    return structuredClone(demoSeed);
+    return normalizeData(structuredClone(demoSeed));
   }
   try {
-    return JSON.parse(saved);
+    return normalizeData(JSON.parse(saved));
   } catch {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(demoSeed));
-    return structuredClone(demoSeed);
+    return normalizeData(structuredClone(demoSeed));
   }
 }
 
 function saveData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function normalizeData(data) {
+  const next = { ...structuredClone(demoSeed), ...data };
+  ["clients", "cases", "tasks", "agenda", "finance", "reports", "centralHistory"].forEach((key) => {
+    const existing = Array.isArray(data?.[key]) ? data[key] : [];
+    const byId = new Map(existing.map((item) => [item.id, item]));
+    demoSeed[key].forEach((item) => {
+      if (!byId.has(item.id)) byId.set(item.id, item);
+    });
+    next[key] = [...byId.values()];
+  });
+  next.office = { ...demoSeed.office, ...(data?.office || {}) };
+  return next;
 }
 
 function loadProfile() {
@@ -371,6 +492,108 @@ function money(value) {
 
 function clientName(id) {
   return state.clients.find((client) => client.id === id)?.name || id;
+}
+
+function caseTitle(id) {
+  const item = state.cases.find((current) => current.id === id);
+  return item ? `${item.title} · ${item.id}` : id || "Sem processo";
+}
+
+function clientContact(client) {
+  return {
+    document: client.document || (client.type === "Pessoa jurídica" ? "00.000.000/0001-00" : "000.000.000-00"),
+    email: client.email || `${client.id.toLowerCase()}@lexos.demo`,
+    phone: client.phone || "(98) 90000-0000",
+    createdAt: client.createdAt || "2026-06-01",
+    updatedAt: client.updatedAt || client.lastContact || "sem atualização",
+  };
+}
+
+function linkedCases(clientId) {
+  return state.cases.filter((item) => item.clientId === clientId);
+}
+
+function caseOperational(item) {
+  const deadline = item.deadline || "";
+  const risk = item.risk || "";
+  const urgent = item.prioridadeOperacional === "Urgente" || item.prioridadeOperacional === "Revisão urgente" || risk === "Alto" || deadline === "vencido";
+  const decision = item.exigeDecisao || risk === "Alto" || deadline === "vencido";
+  return {
+    statusPrincipal: item.statusPrincipal || (item.status === "Ativo" ? "Em andamento" : item.status === "Em atenção" ? "Em acompanhamento" : item.status || "Em andamento"),
+    prioridade: item.prioridadeOperacional || (deadline === "vencido" ? "Revisão urgente" : risk === "Alto" ? "Exige decisão" : risk === "Médio" ? "Em atenção" : "Não urgente"),
+    urgent,
+    decision,
+    attention: item.status === "Em atenção" || item.statusPrincipal === "Em acompanhamento" || risk === "Médio",
+    review: item.revisaoUrgente || deadline === "vencido",
+  };
+}
+
+function taskInfo(task) {
+  return {
+    category: task.category || (task.caseId ? "Processual" : "Operacional"),
+    description: task.description || "Providência operacional registrada no modo demo.",
+    status: task.status || "Pendente",
+    priority: task.urgency || task.priority || "Normal",
+    clientLabel: task.clientId ? clientName(task.clientId) : "Sem cliente vinculado",
+    caseLabel: task.caseId ? caseTitle(task.caseId) : "Sem processo vinculado",
+  };
+}
+
+function agendaOwners(event) {
+  return Array.isArray(event.owners) && event.owners.length ? event.owners : [event.owner].filter(Boolean);
+}
+
+function agendaLinkLabel(event) {
+  if (event.caseId || event.origin?.startsWith("PROC-")) return caseTitle(event.caseId || event.origin);
+  if (event.clientId || event.origin?.startsWith("CLI-")) return clientName(event.clientId || event.origin);
+  return "Evento interno";
+}
+
+function financeType(item) {
+  if (item.type) return item.type;
+  return item.status === "Recebido" || item.status === "A receber" || item.status === "Vencido" ? "Entrada" : "Saída";
+}
+
+function financeDateBucket(item) {
+  const date = item.paidDate || item.expectedDate || "";
+  if (date === "2026-06-18") return "hoje";
+  if (date.startsWith("2026-06-") && Number(date.slice(-2)) >= 18 && Number(date.slice(-2)) <= 25) return "semana";
+  if (date.startsWith("2026-06")) return "mes";
+  return "todos";
+}
+
+function filterTags(values) {
+  return values.filter(Boolean).map((value) => String(value).toLowerCase()).join("|");
+}
+
+function escapeAttr(value) {
+  return String(value || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+
+function moduleFilters(scope, placeholder, filtersConfig) {
+  return `
+    <div class="module-filter-panel" data-filter-panel="${scope}">
+      <label class="sr-only" for="${scope}Search">Buscar em ${scope}</label>
+      <input class="search-input" id="${scope}Search" data-filter-search="${scope}" autocomplete="off" placeholder="${placeholder}" />
+      <div class="module-filter-selects">
+        ${filtersConfig.map((filter, index) => `
+          <label class="sr-only" for="${scope}Filter${index}">${filter.label}</label>
+          <select id="${scope}Filter${index}" data-filter-select="${scope}" data-filter-label="${filter.label}">
+            <option value="">${filter.label}: Todos</option>
+            ${filter.options.map((option) => `<option value="${escapeAttr(option.value)}">${option.label}</option>`).join("")}
+          </select>
+        `).join("")}
+      </div>
+      <div class="module-filter-footer">
+        <div class="filter-chips" data-filter-chips="${scope}"></div>
+        <button class="btn" type="button" data-filter-clear="${scope}">Limpar filtros</button>
+      </div>
+    </div>
+  `;
+}
+
+function moduleEmpty(scope, text) {
+  return `<div class="module-empty hidden" data-empty-for="${scope}"><strong>Nenhum resultado encontrado.</strong><span>${text}</span></div>`;
 }
 
 function riskBadge(value) {
@@ -597,7 +820,12 @@ function renderClients() {
   const pendingBilling = state.clients.filter((client) => client.pendingBilling).length;
   return `
     ${pageHeader("Clientes", "Cadastro e gestão de clientes", "Filtros por status, tipo, responsável e situação operacional.", '<button class="btn primary" data-action="simulate" data-title="Novo cliente">Cadastrar cliente</button>')}
-    ${filters(["Status", "Tipo", "Responsável", "Situação"])}
+    ${moduleFilters("clientes", "Buscar cliente, CPF/CNPJ, telefone, e-mail ou processo", [
+      { label: "Tipo", options: [{ value: "pessoa física", label: "Pessoa física" }, { value: "pessoa jurídica", label: "Pessoa jurídica" }] },
+      { label: "Status", options: [{ value: "ativo", label: "Ativo" }, { value: "arquivado", label: "Arquivado" }, { value: "em atenção", label: "Em atenção" }] },
+      { label: "Vínculo", options: [{ value: "com-processo", label: "Com processo" }, { value: "sem-processo", label: "Sem processo" }, { value: "processo-urgente", label: "Processo urgente" }, { value: "exige-decisao", label: "Exige decisão" }] },
+      { label: "Responsável", options: ["Marina Costa", "Rafael Lima", "Bianca Reis"].map((name) => ({ value: name.toLowerCase(), label: name })) },
+    ])}
     <section class="client-layout">
       <aside class="client-summary panel">
         <div class="panel-title"><h2>Carteira</h2><span>visão rápida</span></div>
@@ -615,6 +843,7 @@ function renderClients() {
       </aside>
       <div class="client-directory">
         ${state.clients.map(clientCard).join("")}
+        ${moduleEmpty("clientes", "Ajuste a busca ou limpe os filtros para voltar à carteira completa.")}
       </div>
     </section>
   `;
@@ -628,7 +857,12 @@ function renderCases() {
   ];
   return `
     ${pageHeader("Processos", "Carteira processual", "Controle de processos ativos, em atenção, suspensos, arquivados e de alto risco.", '<button class="btn primary" data-action="simulate" data-title="Lançar processo">Novo processo</button>')}
-    ${filters(["Status", "Risco", "Área", "Responsável"])}
+    ${moduleFilters("processos", "Buscar processo, cliente, área, responsável ou prazo", [
+      { label: "Prioridade", options: [{ value: "urgente", label: "Urgente" }, { value: "nao-urgente", label: "Não urgente" }, { value: "em-acompanhamento", label: "Em acompanhamento" }, { value: "exige-decisao", label: "Exige decisão" }, { value: "em-atencao", label: "Em atenção" }, { value: "revisao-urgente", label: "Revisão urgente" }] },
+      { label: "Status", options: [{ value: "em andamento", label: "Em andamento" }, { value: "em acompanhamento", label: "Em acompanhamento" }, { value: "arquivado", label: "Arquivado" }] },
+      { label: "Área", options: ["Cível", "Trabalhista", "Tributário"].map((area) => ({ value: area.toLowerCase(), label: area })) },
+      { label: "Responsável", options: ["Marina Costa", "Rafael Lima", "Bianca Reis"].map((name) => ({ value: name.toLowerCase(), label: name })) },
+    ])}
     <section class="case-board">
       ${columns.map(([label, matcher]) => {
         const cases = state.cases.filter(matcher);
@@ -644,6 +878,7 @@ function renderCases() {
           </div>
         `;
       }).join("")}
+      ${moduleEmpty("processos", "Nenhum processo combina com os filtros selecionados.")}
     </section>
   `;
 }
@@ -654,7 +889,12 @@ function renderTasks() {
   const urgent = state.tasks.filter((task) => task.urgency === "Urgente" || task.urgency === "Alta").length;
   return `
     ${pageHeader("Tarefas", "Fila operacional de providências", "Controle de tarefas abertas, atrasadas, urgentes, próximas e sem responsável.", '<button class="btn primary" data-action="simulate" data-title="Nova tarefa">Criar tarefa</button>')}
-    ${filters(["Status", "Urgência", "Responsável", "Vínculo"])}
+    ${moduleFilters("tarefas", "Buscar tarefa, categoria, cliente, processo ou responsável", [
+      { label: "Categoria", options: ["Processual", "Administrativa", "Financeira", "Operacional", "Atendimento", "Interna", "Intimação", "Protocolo", "Revisão", "Cobrança"].map((label) => ({ value: label.toLowerCase(), label })) },
+      { label: "Status", options: [{ value: "aberta", label: "Pendente/Aberta" }, { value: "atrasada", label: "Atrasada" }, { value: "em andamento", label: "Em andamento" }, { value: "concluída", label: "Concluída" }] },
+      { label: "Vínculo", options: [{ value: "com-cliente", label: "Com cliente" }, { value: "com-processo", label: "Com processo" }, { value: "sem-vinculo", label: "Sem vínculo" }] },
+      { label: "Prioridade", options: [{ value: "urgente", label: "Urgente" }, { value: "alta", label: "Alta" }, { value: "normal", label: "Normal" }, { value: "sem-responsavel", label: "Sem responsável" }] },
+    ])}
     <section class="task-layout">
       <div class="task-rail panel">
         <div class="panel-title"><h2>Comando</h2><span>operação</span></div>
@@ -664,12 +904,27 @@ function renderTasks() {
       </div>
       <div class="task-queue">
         ${state.tasks.map(taskQueueItem).join("")}
+        ${moduleEmpty("tarefas", "Nenhuma tarefa encontrada. Tente remover filtros ou criar uma nova providência.")}
       </div>
     </section>
   `;
 }
 
 function clientCard(client) {
+  const contact = clientContact(client);
+  const cases = linkedCases(client.id);
+  const urgent = cases.some((item) => caseOperational(item).urgent);
+  const decision = cases.some((item) => caseOperational(item).decision);
+  const search = [client.name, client.id, client.type, contact.document, contact.email, contact.phone, client.owner, client.situation, ...cases.map((item) => `${item.id} ${item.title}`)].join(" ");
+  const tags = filterTags([
+    client.type,
+    client.status,
+    client.situation,
+    client.owner,
+    cases.length ? "com-processo" : "sem-processo",
+    urgent ? "processo-urgente" : "",
+    decision ? "exige-decisao" : "",
+  ]);
   const initials = client.name
     .split(/\s+/)
     .filter(Boolean)
@@ -678,7 +933,7 @@ function clientCard(client) {
     .join("")
     .toUpperCase();
   return `
-    <article class="client-card">
+    <article class="client-card filterable-card" data-filter-item="clientes" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
       <div class="client-avatar" aria-hidden="true">${initials}</div>
       <div class="client-card-main">
         <div class="client-card-head">
@@ -689,10 +944,13 @@ function clientCard(client) {
           <strong>${client.owner}</strong>
         </div>
         <div class="client-contact-row">
-          <span>Último contato ${client.lastContact}</span>
+          <span>${contact.document}</span>
+          <span>${contact.phone}</span>
+          <span>${contact.email}</span>
           <span>${client.status}</span>
         </div>
-        <div class="badges">${riskBadge(client.situation)}${client.pendingBilling ? riskBadge("Cobrança pendente") : ""}${client.activeCase ? riskBadge("Processo ativo") : ""}</div>
+        <div class="badges">${riskBadge(client.situation)}${client.pendingBilling ? riskBadge("Cobrança pendente") : ""}${cases.length ? riskBadge(`${cases.length} processo${cases.length > 1 ? "s" : ""}`) : riskBadge("Sem processo")}${urgent ? riskBadge("Processo urgente") : ""}${decision ? riskBadge("Exige decisão") : ""}</div>
+        <p class="client-case-line">${cases[0] ? `Principal vínculo: ${caseTitle(cases[0].id)}` : "Sem processo vinculado nesta carteira."}</p>
         <div class="client-actions">${actionButtons(["Abrir detalhes", "Criar processo", "Criar tarefa", "Ver financeiro", "Arquivar cliente"], client.name)}</div>
       </div>
     </article>
@@ -700,8 +958,22 @@ function clientCard(client) {
 }
 
 function caseBoardCard(item) {
+  const op = caseOperational(item);
+  const tags = filterTags([
+    op.urgent ? "urgente" : "nao-urgente",
+    op.attention ? "em-atencao" : "",
+    op.statusPrincipal,
+    op.prioridade,
+    op.decision ? "exige-decisao" : "",
+    op.review ? "revisao-urgente" : "",
+    op.statusPrincipal === "Em acompanhamento" ? "em-acompanhamento" : "",
+    item.area,
+    item.owner,
+    clientName(item.clientId),
+  ]);
+  const search = [item.id, item.title, item.area, item.owner, clientName(item.clientId), item.deadline, item.lastMove, op.statusPrincipal, op.prioridade].join(" ");
   return `
-    <article class="case-card">
+    <article class="case-card filterable-card" data-filter-item="processos" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
       <div class="case-id">${item.id}</div>
       <h3>${item.title}</h3>
       <p>${clientName(item.clientId)}</p>
@@ -709,17 +981,29 @@ function caseBoardCard(item) {
         <span>${item.area}</span>
         <span>${item.owner}</span>
         <span>${money(item.value)}</span>
+        <span>${item.lastMove || "sem movimentação recente"}</span>
       </div>
-      <div class="badges">${riskBadge(item.risk)}${riskBadge(item.deadline)}</div>
+      <div class="badges">${riskBadge(op.statusPrincipal)}${riskBadge(op.prioridade)}${riskBadge(item.deadline)}</div>
       <div class="case-actions">${actionButtons(["Abrir processo", "Criar tarefa", "Lançar prazo", "Registrar andamento"], item.title)}</div>
     </article>
   `;
 }
 
 function taskQueueItem(task) {
-  const tone = task.status === "Atrasada" ? "danger" : task.urgency === "Urgente" || task.urgency === "Alta" ? "warn" : "info";
+  const info = taskInfo(task);
+  const tone = info.status === "Atrasada" ? "danger" : info.priority === "Urgente" || info.priority === "Alta" ? "warn" : "info";
+  const tags = filterTags([
+    info.category,
+    info.status,
+    info.priority,
+    task.owner,
+    task.owner === "Sem responsável" ? "sem-responsavel" : "",
+    task.clientId ? "com-cliente" : "sem-vinculo",
+    task.caseId ? "com-processo" : "",
+  ]);
+  const search = [task.id, task.title, info.description, info.category, info.status, info.priority, task.owner, info.clientLabel, info.caseLabel].join(" ");
   return `
-    <article class="task-item ${tone}">
+    <article class="task-item ${tone} filterable-card" data-filter-item="tarefas" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
       <div class="task-check" aria-hidden="true"></div>
       <div class="task-content">
         <div class="task-head">
@@ -727,11 +1011,12 @@ function taskQueueItem(task) {
             <span class="record-meta">${task.id} · ${task.due}</span>
             <h2>${task.title}</h2>
           </div>
-          <div class="badges">${riskBadge(task.status)}${riskBadge(task.urgency)}</div>
+          <div class="badges">${riskBadge(info.status)}${riskBadge(info.priority)}${riskBadge(info.category)}</div>
         </div>
+        <p>${info.description}</p>
         <div class="task-context">
-          <span>${clientName(task.clientId)}</span>
-          <span>${task.caseId}</span>
+          <span>${info.clientLabel}</span>
+          <span>${info.caseLabel}</span>
           <span>${task.owner}</span>
         </div>
         <div class="task-actions">${actionButtons(["Concluir", "Editar prazo", "Abrir processo", "Abrir cliente", "Arquivar tarefa"], task.title)}</div>
@@ -756,27 +1041,62 @@ function renderAgenda() {
 }
 
 function renderFinance() {
-  const totalOpen = state.finance.filter((item) => item.status !== "Recebido").reduce((sum, item) => sum + item.amount, 0);
+  const entries = state.finance.filter((item) => financeType(item) === "Entrada");
+  const exits = state.finance.filter((item) => financeType(item) === "Saída");
+  const received = entries.filter((item) => item.status === "Recebido").reduce((sum, item) => sum + item.amount, 0);
+  const receivable = entries.filter((item) => item.status !== "Recebido").reduce((sum, item) => sum + item.amount, 0);
+  const paidExits = exits.filter((item) => item.status === "Pago").reduce((sum, item) => sum + item.amount, 0);
+  const pendingExits = exits.filter((item) => item.status !== "Pago").reduce((sum, item) => sum + item.amount, 0);
   const overdue = state.finance.filter((item) => item.status === "Vencido").reduce((sum, item) => sum + item.amount, 0);
-  const received = state.finance.filter((item) => item.status === "Recebido").reduce((sum, item) => sum + item.amount, 0);
   return `
-    ${pageHeader("Financeiro", "Controle interno de recebíveis", "MVP sem gateway, PIX, boleto ou banco real.", '<button class="btn primary" data-action="simulate" data-title="Nova cobrança">Nova cobrança</button>')}
+    ${pageHeader("Financeiro", "Controle financeiro interno", "Entradas, saídas, recebíveis, pendências e visão líquida demonstrativa.", '<button class="btn primary" data-action="simulate" data-title="Nova cobrança">Nova movimentação</button>')}
     <section class="grid metrics">
-      ${metric("A receber", money(totalOpen), "receita prevista", "financeiro")}
-      ${metric("Vencidos", money(overdue), "clientes inadimplentes", "financeiro")}
-      ${metric("Recebido no mês", money(received), "lançamento manual", "financeiro")}
-      ${metric("Cobranças", state.finance.length, "controle interno", "financeiro")}
-      ${metric("Integrações", "0", "sem bancos reais", "config")}
+      ${metric("Entradas recebidas", money(received), "realizado no período", "financeiro")}
+      ${metric("A receber", money(receivable), "receita prevista", "financeiro")}
+      ${metric("Saídas pagas", money(paidExits), "gastos realizados", "financeiro")}
+      ${metric("Líquido realizado", money(received - paidExits), "visível para sócio/admin", "financeiro")}
+      ${metric("Pendências", money(overdue + pendingExits), "vencidos e pendentes", "financeiro")}
     </section>
-    <div style="margin-top:14px">
-      ${table(["Cobrança", "Cliente", "Valor", "Status", "Ações"], state.finance.map((item) => [
-        `<strong>${item.description}</strong><span class="record-meta">${item.id} · ${item.due}</span>`,
-        clientName(item.clientId),
-        money(item.amount),
-        riskBadge(item.status),
-        actionButtons(["Marcar como pago", "Reagendar", "Arquivar"], item.description),
-      ]))}
-    </div>
+    ${moduleFilters("financeiro", "Buscar cliente, descrição, responsável, entrada ou saída", [
+      { label: "Tipo", options: [{ value: "entrada", label: "Entrada" }, { value: "saída", label: "Saída" }] },
+      { label: "Status", options: [{ value: "recebido", label: "Recebido" }, { value: "a receber", label: "A receber" }, { value: "vencido", label: "Vencido" }, { value: "pago", label: "Pago" }, { value: "pendente", label: "Pendente" }] },
+      { label: "Período", options: [{ value: "hoje", label: "Hoje" }, { value: "semana", label: "Esta semana" }, { value: "mes", label: "Este mês" }, { value: "todos", label: "Todos" }] },
+      { label: "Visibilidade", options: [{ value: "sócios", label: "Sócios/admin" }, { value: "equipe", label: "Equipe" }] },
+    ])}
+    <section class="finance-layout">
+      <div class="finance-ledger">
+        ${state.finance.map(financeCard).join("")}
+        ${moduleEmpty("financeiro", "Nenhuma movimentação financeira combina com os filtros selecionados.")}
+      </div>
+      <aside class="panel finance-guard">
+        <div class="panel-title"><h2>Acesso sensível</h2><span>sócios</span></div>
+        <p>Lucro, líquido geral, gastos internos e recebíveis consolidados ficam marcados como dados sensíveis nesta versão demonstrativa.</p>
+        <ul class="check-list">
+          <li>Proteção real depende de autenticação e permissões no back-end.</li>
+          <li>Integração Gmail/N8N preparada como ponto futuro, sem webhook ou segredo no código.</li>
+        </ul>
+      </aside>
+    </section>
+  `;
+}
+
+function financeCard(item) {
+  const type = financeType(item);
+  const visibility = item.visibility || "Sócios";
+  const dateBucket = financeDateBucket(item);
+  const tags = filterTags([type, item.status, dateBucket, dateBucket === "semana" ? "mes" : "", visibility, item.owner, item.category, item.clientId ? "com-cliente" : "sem-cliente", item.caseId ? "com-processo" : "sem-processo"]);
+  const search = [item.id, item.description, type, item.category, item.status, item.owner, clientName(item.clientId), caseTitle(item.caseId), item.due].join(" ");
+  return `
+    <article class="finance-card ${type === "Saída" ? "expense" : "income"} filterable-card" data-filter-item="financeiro" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
+      <div>
+        <span class="record-meta">${item.id} · ${type} · ${item.category || "Movimentação"}</span>
+        <h2>${item.description}</h2>
+        <p>${item.clientId ? clientName(item.clientId) : "Sem cliente vinculado"}${item.caseId ? ` · ${caseTitle(item.caseId)}` : ""}</p>
+      </div>
+      <strong>${type === "Saída" ? "-" : "+"}${money(item.amount)}</strong>
+      <div class="badges">${riskBadge(item.status)}${riskBadge(item.due)}${visibility.toLowerCase().includes("sócio") ? riskBadge("Restrito") : riskBadge("Equipe")}</div>
+      <div class="finance-actions">${actionButtons(type === "Saída" ? ["Marcar como pago", "Reagendar", "Arquivar"] : ["Marcar como recebido", "Enviar lembrete", "Reagendar"], item.description)}</div>
+    </article>
   `;
 }
 
@@ -1098,6 +1418,12 @@ function bindActions2() {
 
   mountAgendaMonthlyCalendar();
 
+  document.querySelectorAll("[data-agenda-day]").forEach((button) => {
+    button.addEventListener("click", () => {
+      openInternalWindow(`Agenda do dia ${button.dataset.agendaDay}`, agendaDayContent(Number(button.dataset.agendaDay)));
+    });
+  });
+
   document.querySelectorAll("[data-shortcut]").forEach((button) => {
     button.addEventListener("click", () => {
       document.getElementById("officeProfileMenu")?.classList.add("hidden");
@@ -1107,6 +1433,7 @@ function bindActions2() {
   });
 
   bindProfileForm(document.getElementById("screen"));
+  bindModuleFilters();
 
   document.querySelectorAll("[data-action='simulate']").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1147,6 +1474,56 @@ function bindActions2() {
       toast("Prompt copiado.");
     });
   }
+}
+
+function bindModuleFilters() {
+  document.querySelectorAll("[data-filter-panel]").forEach((panel) => {
+    const scope = panel.dataset.filterPanel;
+    const search = panel.querySelector(`[data-filter-search="${scope}"]`);
+    const selects = [...panel.querySelectorAll(`[data-filter-select="${scope}"]`)];
+    const clear = panel.querySelector(`[data-filter-clear="${scope}"]`);
+    const chips = panel.querySelector(`[data-filter-chips="${scope}"]`);
+    const apply = () => {
+      const query = (search?.value || "").trim().toLowerCase();
+      const active = selects.map((select) => ({ label: select.dataset.filterLabel, value: select.value, text: select.selectedOptions[0]?.textContent || "" })).filter((item) => item.value);
+      const items = [...document.querySelectorAll(`[data-filter-item="${scope}"]`)];
+      let visible = 0;
+      items.forEach((item) => {
+        const haystack = item.dataset.search || "";
+        const tags = item.dataset.tags || "";
+        const show = (!query || haystack.includes(query)) && active.every((filter) => tags.includes(filter.value));
+        item.classList.toggle("hidden", !show);
+        if (show) visible += 1;
+      });
+      document.querySelector(`[data-empty-for="${scope}"]`)?.classList.toggle("hidden", visible > 0);
+      if (chips) {
+        chips.innerHTML = [
+          query ? `<button type="button" data-clear-query="${scope}">Busca: ${query}</button>` : "",
+          ...active.map((filter) => `<button type="button" data-clear-filter="${scope}" data-value="${escapeAttr(filter.value)}">${filter.label}: ${filter.text.replace(/^.*?:\s*/, "")}</button>`),
+        ].join("");
+        chips.querySelectorAll("[data-clear-query]").forEach((button) => button.addEventListener("click", () => {
+          if (search) search.value = "";
+          apply();
+        }));
+        chips.querySelectorAll("[data-clear-filter]").forEach((button) => button.addEventListener("click", () => {
+          selects.filter((select) => select.value === button.dataset.value).forEach((select) => {
+            select.value = "";
+          });
+          apply();
+        }));
+      }
+    };
+    search?.addEventListener("input", apply);
+    selects.forEach((select) => select.addEventListener("change", apply));
+    clear?.addEventListener("click", () => {
+      if (search) search.value = "";
+      selects.forEach((select) => {
+        select.value = "";
+      });
+      apply();
+    });
+    apply();
+  });
 }
 
 function bindProfileForm(root) {
@@ -1261,33 +1638,57 @@ function actionContent(title) {
   }
 
   if (normalized.includes("nova tarefa") || normalized.includes("criar tarefa")) {
-    return formShell("Tarefa", [
-      field("Providência", "Revisar documento antes do protocolo"),
-      selectField("Cliente", state.clients.map((client) => client.name)),
-      selectField("Processo", state.cases.map((item) => item.id)),
-      selectField("Urgência", ["Normal", "Alta", "Urgente"]),
-      field("Prazo", "Hoje, 17:00"),
-    ]);
+    return `
+      <form class="drawer-form" data-task-form>
+        ${field("Título da tarefa", "Chamar encarregado para resolver intimação")}
+        ${textAreaField("Descrição", "Registrar providência operacional, mesmo sem processo vinculado.")}
+        ${selectField("Categoria", ["Processual", "Administrativa", "Financeira", "Operacional", "Atendimento", "Interna", "Externa", "Intimação", "Protocolo", "Revisão", "Cobrança", "Outro"])}
+        ${selectField("Status", ["Aberta", "Em andamento", "Em atenção", "Aguardando terceiro", "Aguardando cliente", "Concluída", "Atrasada", "Cancelada"])}
+        ${selectField("Prioridade", ["Normal", "Alta", "Urgente"])}
+        ${selectField("Cliente opcional", ["Sem cliente", ...state.clients.map((client) => client.name)])}
+        ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.id} · ${item.title}`)])}
+        ${selectField("Responsável", ["Sem responsável", "Marina Costa", "Rafael Lima", "Bianca Reis"])}
+        ${field("Prazo", "Hoje, 17:00")}
+        <button class="btn primary" type="submit">Salvar tarefa no modo demo</button>
+      </form>
+    `;
   }
 
   if (normalized.includes("adicionar evento")) {
-    return formShell("Evento de agenda", [
-      field("Título do evento", "Reunião de alinhamento com cliente"),
-      selectField("Tipo", ["Audiência", "Reunião", "Follow-up", "Prazo", "Compromisso interno"]),
-      selectField("Vínculo", [...state.clients.map((client) => client.id), ...state.cases.map((item) => item.id)]),
-      field("Data e horário", "Amanhã, 09:00"),
-      selectField("Responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis"]),
-    ]);
+    return `
+      <form class="drawer-form" data-event-form>
+        ${field("Título do evento", "Reunião interna de alinhamento")}
+        ${selectField("Tipo", ["Audiência", "Reunião", "Atendimento", "Prazo", "Diligência", "Protocolo", "Ligação", "Retorno ao cliente", "Perícia", "Intimação", "Reunião interna", "Tarefa administrativa", "Financeiro", "Outro"])}
+        ${field("Tipo personalizado", "")}
+        ${selectField("Cliente opcional", ["Sem cliente", ...state.clients.map((client) => client.name)])}
+        ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.id} · ${item.title}`)])}
+        ${field("Data", "2026-06-18")}
+        ${field("Hora inicial", "14:30")}
+        ${field("Hora final", "15:30")}
+        ${selectField("Responsáveis", ["Marina Costa", "Rafael Lima", "Bianca Reis", "Marina Costa + Rafael Lima", "Equipe operacional"])}
+        ${textAreaField("Observações", "Evento demonstrativo com verificação local de conflito de agenda.")}
+        <div class="availability-note" data-availability-note>Informe data e horário para verificar disponibilidade.</div>
+        <button class="btn primary" type="submit">Salvar evento no modo demo</button>
+      </form>
+    `;
   }
 
   if (normalized.includes("nova cobrança")) {
-    return formShell("Cobrança", [
-      selectField("Cliente", state.clients.map((client) => client.name)),
-      field("Descrição", "Honorários mensais"),
-      field("Valor", "8500"),
-      selectField("Status", ["A receber", "Vencido", "Recebido"]),
-      field("Vencimento", "Em 10 dias"),
-    ]);
+    return `
+      <form class="drawer-form" data-finance-form>
+        ${selectField("Tipo", ["Entrada", "Saída"])}
+        ${selectField("Categoria", ["Recebível", "Recebido", "Despesa administrativa", "Despesa processual", "Custas", "Diligência", "Pagamento de terceiro"])}
+        ${selectField("Cliente opcional", ["Sem cliente", ...state.clients.map((client) => client.name)])}
+        ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.id} · ${item.title}`)])}
+        ${field("Descrição", "Honorários mensais")}
+        ${field("Valor", "8500")}
+        ${selectField("Status", ["A receber", "Recebido", "Vencido", "Pendente", "Pago", "Cancelado"])}
+        ${field("Data prevista", "2026-06-25")}
+        ${selectField("Responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis"])}
+        ${selectField("Visibilidade", ["Sócios", "Equipe"])}
+        <button class="btn primary" type="submit">Salvar movimentação no modo demo</button>
+      </form>
+    `;
   }
 
   if (normalized.includes("gerar relatório")) {
@@ -1311,6 +1712,12 @@ function actionContent(title) {
         <button class="btn primary" data-drawer-action="register-ai">Registrar no histórico local</button>
       </div>
     `;
+  }
+
+  if (normalized.includes("detalhe do evento")) {
+    const eventTitle = title.replace(/^Detalhe do evento:\s*/, "");
+    const event = state.agenda.find((item) => item.title === eventTitle) || state.agenda[0];
+    return eventDetailContent(event);
   }
 
   if (normalized.includes("abrir detalhes") || normalized.includes("abrir processo") || normalized.includes("abrir cliente") || normalized.includes("ver cliente") || normalized.includes("ver financeiro")) {
@@ -1372,6 +1779,33 @@ function actionContent(title) {
   `;
 }
 
+function eventDetailContent(event) {
+  return `
+    <div class="drawer-body">
+      <div class="event-detail">
+        <span class="record-meta">${event.id} · ${event.type}</span>
+        <h3>${event.title}</h3>
+        <p>${event.date}</p>
+        <div class="badges">
+          ${riskBadge(event.status)}
+          <span class="badge">${agendaOwners(event).join(", ")}</span>
+          <span class="badge">${agendaLinkLabel(event)}</span>
+        </div>
+        <ul class="check-list">
+          <li>Cliente: ${event.clientId ? clientName(event.clientId) : "Sem cliente vinculado"}</li>
+          <li>Processo: ${event.caseId ? caseTitle(event.caseId) : "Sem processo vinculado"}</li>
+          <li>Horário: ${event.start || event.date}${event.end ? ` até ${event.end.split("T")[1]}` : ""}</li>
+          <li>Observações: ${event.description || "Sem observações registradas."}</li>
+        </ul>
+        <div class="table-actions">
+          <button class="btn" data-shortcut="agenda">Voltar para agenda</button>
+          <button class="btn" data-shortcut="${agendaShortcut(event)}">Abrir vínculo</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function field(label, value) {
   const id = `field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return `<div class="field"><label for="${id}">${label}</label><input id="${id}" name="${id}" value="${value}" autocomplete="off" /></div>`;
@@ -1426,6 +1860,7 @@ function openInternalWindow(title, content) {
   `;
   document.getElementById("closeDrawer").addEventListener("click", () => drawer.classList.add("hidden"));
   bindOfficeProfileDrawer(drawer);
+  bindOperationalForms(drawer);
   drawer.querySelectorAll("[data-demo-form]:not([data-profile-drawer-form])").forEach((form) => {
     form.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -1451,6 +1886,124 @@ function openInternalWindow(title, content) {
     });
   });
   document.getElementById("closeDrawer").focus();
+}
+
+function bindOperationalForms(drawer) {
+  bindTaskForm(drawer);
+  bindEventForm(drawer);
+  bindFinanceForm(drawer);
+}
+
+function selectedClientId(label) {
+  return state.clients.find((client) => client.name === label)?.id || "";
+}
+
+function selectedCaseId(label) {
+  return state.cases.find((item) => label?.startsWith(item.id))?.id || "";
+}
+
+function bindTaskForm(drawer) {
+  const form = drawer.querySelector("[data-task-form]");
+  if (!form) return;
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const inputs = [...form.querySelectorAll("input, textarea, select")];
+    const [title, description, category, status, priority, clientLabel, caseLabel, owner, due] = inputs.map((item) => item.value.trim());
+    state.tasks.unshift({
+      id: `TAR-${Math.floor(Math.random() * 800 + 300)}`,
+      title,
+      description,
+      category,
+      clientId: selectedClientId(clientLabel),
+      caseId: selectedCaseId(caseLabel),
+      owner,
+      status,
+      urgency: priority,
+      due,
+    });
+    saveData();
+    toast("Tarefa salva no modo demo.");
+    drawer.classList.add("hidden");
+    renderPage();
+  });
+}
+
+function bindEventForm(drawer) {
+  const form = drawer.querySelector("[data-event-form]");
+  if (!form) return;
+  const note = form.querySelector("[data-availability-note]");
+  const inputs = [...form.querySelectorAll("input, textarea, select")];
+  const updateAvailability = () => {
+    const data = inputs.map((item) => item.value.trim());
+    const date = data[5];
+    const start = data[6];
+    const end = data[7];
+    const owners = data[8]?.split("+").map((item) => item.trim()).filter(Boolean) || [];
+    if (!date || !start || !end || !note) return;
+    const conflict = state.agenda.some((event) => {
+      const eventOwners = agendaOwners(event);
+      return event.start?.startsWith(`${date}T${start}`) && owners.some((owner) => eventOwners.includes(owner));
+    });
+    note.textContent = conflict ? "Conflito: já existe compromisso para responsável nesse horário." : "Horário livre para os responsáveis selecionados.";
+    note.classList.toggle("danger", conflict);
+  };
+  inputs.forEach((input) => input.addEventListener("input", updateAvailability));
+  inputs.forEach((input) => input.addEventListener("change", updateAvailability));
+  updateAvailability();
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = inputs.map((item) => item.value.trim());
+    const [title, type, customType, clientLabel, caseLabel, date, start, end, ownersLabel, notes] = data;
+    const owners = ownersLabel.split("+").map((item) => item.trim()).filter(Boolean);
+    const finalType = type === "Outro" && customType ? customType : type;
+    state.agenda.unshift({
+      id: `AGE-${Math.floor(Math.random() * 800 + 400)}`,
+      title,
+      type: finalType,
+      date: `${date}, ${start}`,
+      start: `${date}T${start}`,
+      end: `${date}T${end}`,
+      clientId: selectedClientId(clientLabel),
+      caseId: selectedCaseId(caseLabel),
+      origin: selectedCaseId(caseLabel) || selectedClientId(clientLabel) || "Interno",
+      owner: owners[0] || "Equipe operacional",
+      owners: owners.length ? owners : ["Equipe operacional"],
+      description: notes,
+      status: "Confirmado",
+    });
+    saveData();
+    toast("Evento salvo no modo demo.");
+    drawer.classList.add("hidden");
+    renderPage();
+  });
+}
+
+function bindFinanceForm(drawer) {
+  const form = drawer.querySelector("[data-finance-form]");
+  if (!form) return;
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const [type, category, clientLabel, caseLabel, description, amount, status, expectedDate, owner, visibility] = [...form.querySelectorAll("input, select")].map((item) => item.value.trim());
+    state.finance.unshift({
+      id: `FIN-${Math.floor(Math.random() * 800 + 500)}`,
+      clientId: selectedClientId(clientLabel),
+      caseId: selectedCaseId(caseLabel),
+      description,
+      type,
+      category,
+      amount: Number(String(amount).replace(/\D/g, "")) || 0,
+      status,
+      expectedDate,
+      paidDate: status === "Recebido" || status === "Pago" ? expectedDate : "",
+      owner,
+      visibility,
+      due: expectedDate,
+    });
+    saveData();
+    toast("Movimentação financeira salva no modo demo.");
+    drawer.classList.add("hidden");
+    renderPage();
+  });
 }
 
 function bindOfficeProfileDrawer(drawer) {
@@ -1529,9 +2082,9 @@ function renderAgenda2() {
     <div class="module-tabs">${["Hoje", "Próximos 7 dias", "Vencidos", "Audiências", "Reuniões", "Tarefas/processos"].map((tab, index) => `<button class="${index === 0 ? "active" : ""}" data-action="simulate" data-title="Filtro ${tab}">${tab}</button>`).join("")}</div>
     <section class="grid three">
       ${state.agenda.map((event) => `
-        <button class="record record-link" type="button" data-shortcut="${agendaShortcut(event)}" aria-label="Abrir vínculo de ${event.title}">
+        <button class="record record-link" type="button" data-action="simulate" data-title="Detalhe do evento: ${event.title}" aria-label="Abrir detalhe de ${event.title}">
           <div class="record-head"><div><h3>${event.title}</h3><p>${event.date}</p></div>${riskBadge(event.status)}</div>
-          <div class="badges"><span class="badge info">${event.type}</span><span class="badge">${event.origin}</span><span class="badge">${event.owner}</span></div>
+          <div class="badges"><span class="badge info">${event.type}</span><span class="badge">${agendaLinkLabel(event)}</span><span class="badge">${agendaOwners(event).join(", ")}</span></div>
         </button>
       `).join("")}
     </section>
@@ -1546,6 +2099,7 @@ function agendaShortcut(event) {
 }
 
 function agendaDay(event) {
+  if (event.start?.startsWith("2026-06-")) return Number(event.start.slice(8, 10));
   if (event.date.includes("Hoje")) return 14;
   if (event.date.includes("Amanhã")) return 15;
   if (event.date.includes("6 dias")) return 20;
@@ -1562,12 +2116,13 @@ function monthlyCalendarContent() {
   for (let day = 1; day <= totalDays; day += 1) {
     const events = state.agenda.filter((event) => agendaDay(event) === day);
     cells.push(`
-      <div class="calendar-cell ${events.length ? "has-event" : ""}">
+      <button class="calendar-cell ${events.length ? "has-event" : ""}" type="button" data-agenda-day="${day}" ${events.length ? "" : "disabled"}>
         <strong>${day}</strong>
         <div class="calendar-events">
-          ${events.map((event) => `<button type="button" data-shortcut="${agendaShortcut(event)}">${event.title}</button>`).join("")}
+          ${events.slice(0, 3).map((event) => `<span>${event.title}</span>`).join("")}
+          ${events.length > 3 ? `<em>+${events.length - 3} eventos</em>` : ""}
         </div>
-      </div>
+      </button>
     `);
   }
 
@@ -1587,6 +2142,31 @@ function monthlyCalendarContent() {
         ${cells.join("")}
       </div>
       <p class="demo-note">Clique em um evento para abrir o módulo vinculado. Visual mensal demonstrativo, sem sincronização externa.</p>
+    </div>
+  `;
+}
+
+function agendaDayContent(day) {
+  const events = state.agenda
+    .filter((event) => agendaDay(event) === day)
+    .sort((a, b) => String(a.start || a.date).localeCompare(String(b.start || b.date)));
+  return `
+    <div class="drawer-body">
+      <div class="calendar-head">
+        <div>
+          <span class="record-meta">Dia ${day} · Junho de 2026</span>
+          <h3>${events.length} evento${events.length === 1 ? "" : "s"} no dia</h3>
+        </div>
+        <button class="btn" type="button" data-action="simulate" data-title="Adicionar evento">Adicionar evento</button>
+      </div>
+      <div class="list">
+        ${events.map((event) => `
+          <button class="record record-link" type="button" data-action="simulate" data-title="Detalhe do evento: ${event.title}">
+            <div class="record-head"><div><h3>${event.title}</h3><p>${event.start?.split("T")[1] || event.date}</p></div>${riskBadge(event.status)}</div>
+            <div class="badges"><span class="badge info">${event.type}</span><span class="badge">${agendaOwners(event).join(", ")}</span><span class="badge">${agendaLinkLabel(event)}</span></div>
+          </button>
+        `).join("") || `<div class="empty-state">Nenhum evento neste dia.</div>`}
+      </div>
     </div>
   `;
 }
