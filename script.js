@@ -4,6 +4,7 @@ const SIDEBAR_KEY = "lexos-control-sidebar-collapsed";
 const PROFILE_KEY = "lexos-control-profile";
 const THEME_KEY = "lexos-control-theme";
 const INTERNAL_DEPTH_KEY = "lexos-control-internal-depth";
+const NOTIFICATION_READ_KEY = "lexos-control-notifications-read";
 
 const demoSeed = {
   office: {
@@ -695,7 +696,7 @@ function renderLogin() {
         <div class="login-title">
           <span class="eyebrow">Sistema interno demonstrativo</span>
           <h1>Gestão jurídica sem dispersão.</h1>
-          <p>Ambiente local para demonstrar operação, carteira, prazos, financeiro, relatórios e apoio assistido por IA com revisão humana.</p>
+          <p>Ambiente local para demonstrar operação, carteira, prazos, financeiro, relatórios e apoio assistido por IA com revisão supervisionada.</p>
         </div>
         <div class="sidebar-footer">MVP sem integrações externas reais. Dados fictícios persistem apenas neste navegador.</div>
       </div>
@@ -748,10 +749,13 @@ function renderApp() {
       <main class="main" id="workspace" tabindex="-1">
         <header class="topbar">
           <label class="sr-only" for="globalSearch">Busca global</label>
-          <input class="search-input" id="globalSearch" name="globalSearch" autocomplete="off" placeholder="Buscar cliente, processo, tarefa, agenda ou financeiro…" />
+          <div class="global-search-wrap">
+            <input class="search-input" id="globalSearch" name="globalSearch" autocomplete="off" placeholder="Buscar cliente, processo, tarefa, agenda ou financeiro…" />
+            <div class="global-search-panel hidden" id="globalSearchPanel"></div>
+          </div>
           <button class="notification-trigger" id="notificationTrigger" type="button" aria-label="Abrir notificações internas">
             <span aria-hidden="true">!</span>
-            <strong>${buildNotifications().length}</strong>
+            <strong>${unreadNotifications().length}</strong>
           </button>
           <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar modo claro e escuro" title="Alternar tema">
             <span aria-hidden="true">${loadTheme() === "light" ? "☀" : "☾"}</span>
@@ -816,7 +820,13 @@ function renderApp() {
     toast("Dados fictícios restaurados.");
     renderApp();
   });
-  document.getElementById("globalSearch").addEventListener("keydown", (event) => {
+  const globalSearchInput = document.getElementById("globalSearch");
+  globalSearchInput.addEventListener("input", () => renderGlobalSearchPanel(globalSearchInput.value));
+  globalSearchInput.addEventListener("focus", () => renderGlobalSearchPanel(globalSearchInput.value));
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".global-search-wrap")) document.getElementById("globalSearchPanel")?.classList.add("hidden");
+  });
+  globalSearchInput.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       openInternalWindow("Busca global", globalSearch(event.target.value));
     }
@@ -898,7 +908,7 @@ function renderDashboard() {
       <div class="panel">
         <div class="panel-title"><h2>Fila de prioridades</h2><span>decisão</span></div>
         <div class="list">
-          ${record("Prazo vencido em processo trabalhista", "Defesa em reclamação trabalhista exige revisão humana antes de nova movimentação.", ["Prazo", "Risco médio", "Rafael Lima"], "processos")}
+          ${record("Prazo vencido em processo trabalhista", "Defesa em reclamação trabalhista exige revisão antes de nova movimentação.", ["Prazo", "Risco médio", "Rafael Lima"], "processos")}
           ${record("Cliente sem retorno", "João Ricardo Nunes está há 21 dias sem retorno registrado.", ["Follow-up", "Carteira"], "clientes")}
           ${record("Cobrança vencida", "Almeida & Torres possui honorários mensais vencidos há 8 dias.", ["Financeiro", "Vencido"], "financeiro")}
         </div>
@@ -909,9 +919,9 @@ function renderDashboard() {
           ${front("Carteira", state.clients.length, "clientes monitorados", "clientes")}
           ${front("Processos em andamento", state.cases.length, "processos ativos", "processos")}
           ${front("Operação", state.tasks.length, "providências abertas", "tarefas")}
-          ${front("Agenda", state.agenda.length, "eventos jurídicos", "agenda")}
-          ${front("Recebíveis", money(state.finance.reduce((s, f) => s + f.amount, 0)), "total demonstrativo", "financeiro")}
-          ${front("IA assistida", state.centralHistory.length, "registros revisáveis", "central")}
+          ${front("Agenda", state.agenda.length, "eventos da agenda", "agenda")}
+          ${front("A receber", money(state.finance.filter((item) => financeType(item) === "Entrada" && item.status !== "Recebido").reduce((s, f) => s + f.amount, 0)), "recebíveis", "financeiro")}
+          ${front("Central LEX.OS", state.centralHistory.length, "ações assistidas", "central")}
         </div>
       </div>
     </section>
@@ -1024,9 +1034,9 @@ function renderTasks() {
     <section class="task-layout">
       <div class="task-rail panel">
         <div class="panel-title"><h2>Comando</h2><span>operação</span></div>
-        <div class="task-pulse danger"><strong>${delayed}</strong><span>atrasada</span></div>
-        <div class="task-pulse warn"><strong>${urgent}</strong><span>urgentes/altas</span></div>
-        <div class="task-pulse info"><strong>${noOwner}</strong><span>sem responsável</span></div>
+        <button class="task-pulse danger" type="button" data-quick-filter="tarefas" data-filter-value="atrasada"><strong>${delayed}</strong><span>atrasada</span></button>
+        <button class="task-pulse warn" type="button" data-quick-filter="tarefas" data-filter-value="urgente"><strong>${urgent}</strong><span>urgentes/altas</span></button>
+        <button class="task-pulse info" type="button" data-quick-filter="tarefas" data-filter-value="sem-responsavel"><strong>${noOwner}</strong><span>sem responsável</span></button>
       </div>
       <div class="task-queue">
         ${state.tasks.map(taskQueueItem).join("")}
@@ -1120,6 +1130,10 @@ function caseBoardCard(item) {
 function taskQueueItem(task) {
   const info = taskInfo(task);
   const tone = info.status === "Atrasada" ? "danger" : info.priority === "Urgente" || info.priority === "Alta" ? "warn" : "info";
+  const actions = ["Ver tarefa", "Editar", "Concluir", "Alterar prazo", "Reatribuir"];
+  if (task.caseId) actions.push("Abrir processo");
+  if (task.clientId) actions.push("Abrir cliente");
+  actions.push("Arquivar tarefa");
   const tags = filterTags([
     info.category,
     info.status,
@@ -1148,7 +1162,7 @@ function taskQueueItem(task) {
           <span>${info.caseLabel}</span>
           <span>${task.owner}</span>
         </div>
-        <div class="task-actions">${actionButtons(["Concluir", "Editar prazo", "Abrir processo", "Abrir cliente", "Arquivar tarefa"], task.title)}</div>
+        <div class="task-actions">${actionButtons(actions, task.title)}</div>
       </div>
     </article>
   `;
@@ -1270,7 +1284,7 @@ function renderPartners() {
 
 function renderReports() {
   return `
-    ${pageHeader("Relatórios", "Geração de relatórios assistidos", "Modelos prontos e histórico com revisão humana obrigatória.", '<button class="btn primary" data-action="simulate" data-title="Gerar relatório">Gerar relatório</button>')}
+    ${pageHeader("Relatórios", "Geração de relatórios assistidos", "Modelos prontos e histórico com revisão supervisionada obrigatória.", '<button class="btn primary" data-action="simulate" data-title="Gerar relatório">Gerar relatório</button>')}
     <section class="beta-grid">
       ${betaActionCard("Exportação PDF/CSV/Excel", "Saídas planejadas para relatórios, listas e financeiro.", "Exportar relatório Beta")}
       ${betaActionCard("Produtividade por responsável", "Indicadores por pessoa, prazo e conclusão.", "Relatório Beta de produtividade")}
@@ -1280,15 +1294,15 @@ function renderReports() {
       <div class="panel">
         <div class="panel-title"><h2>Modelos prontos</h2><span>templates</span></div>
         <div class="list">
-          ${record("Relatório executivo semanal", "Resumo de carteira, prazos, financeiro e decisões pendentes.", ["Sócios"], "socios")}
-          ${record("Relatório de risco processual", "Processos críticos, próximos prazos e plano de ação.", ["Processos"], "processos")}
-          ${record("Relatório financeiro interno", "Recebíveis, vencidos e previsão de caixa.", ["Financeiro"], "financeiro")}
+          ${reportPreview("Relatório executivo semanal", "Resumo de carteira, prazos, financeiro e decisões pendentes.", ["Sócios", "Beta"])}
+          ${reportPreview("Relatório de risco processual", "Processos críticos, próximos prazos e plano de ação.", ["Processos", "Beta"])}
+          ${reportPreview("Relatório financeiro interno", "A receber, vencidos, gastos e previsão de caixa.", ["Financeiro", "Beta"])}
         </div>
       </div>
       <div class="panel">
         <div class="panel-title"><h2>Histórico</h2><span>revisão</span></div>
         <div class="list">
-          ${state.reports.map((report) => record(report.model, `${report.created} · revisor: ${report.reviewer}`, [report.status, "Exportar Beta"], "relatorios")).join("")}
+          ${state.reports.map((report) => reportPreview(report.model, `${report.created} · revisor: ${report.reviewer}`, [report.status, "Exportar Beta"])).join("")}
         </div>
       </div>
     </section>
@@ -1302,7 +1316,7 @@ function renderCentral() {
     <section class="beta-grid">
       ${betaActionCard("Sugerir prioridade com IA", "Preparado para processos, tarefas e agenda.", "Sugerir prioridade com IA")}
       ${betaActionCard("Identificar pendências", "Apoio supervisionado em clientes e financeiro.", "Identificar pendências com IA")}
-      ${betaActionCard("Gerar resumo operacional", "Rascunhos internos com revisão humana.", "Gerar resumo com IA")}
+      ${betaActionCard("Gerar resumo operacional", "Rascunhos internos com revisão supervisionada.", "Gerar resumo com IA")}
     </section>
     <div class="module-tabs">${tabs.map((tab) => `<button class="${tab === currentTab ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}</div>
     <section class="grid two">
@@ -1442,6 +1456,16 @@ function record(title, text, badges, page = "") {
   `;
 }
 
+function reportPreview(title, text, badges) {
+  return `
+    <button class="record record-link" type="button" data-action="simulate" data-title="Prévia do relatório: ${escapeAttr(title)}">
+      <h3>${title}</h3>
+      <p>${text}</p>
+      <div class="badges">${badges.map((badge) => badge === "Beta" ? betaBadge() : riskBadge(badge)).join("")}</div>
+    </button>
+  `;
+}
+
 function filters(labels) {
   return `
     <div class="filters">
@@ -1479,7 +1503,7 @@ function onboardingText(step) {
     "Financeiro": "Registrar recebíveis internos, vencimentos e cobranças pendentes.",
     "Painel dos Sócios": "Usar a sala executiva para decisões estratégicas de curto prazo.",
     "Relatórios": "Gerar rascunhos assistidos e revisar antes de compartilhar.",
-    "Central LEX.OS": "Executar apoio assistido com supervisão humana e histórico local.",
+    "Central LEX.OS": "Executar apoio assistido com supervisão e histórico local.",
   };
   return map[step];
 }
@@ -1548,18 +1572,40 @@ function openDrawer(title, content) {
   document.getElementById("closeDrawer").addEventListener("click", () => drawer.classList.add("hidden"));
 }
 
+function readNotificationIds() {
+  try {
+    return JSON.parse(localStorage.getItem(NOTIFICATION_READ_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function markNotificationRead(id) {
+  const ids = new Set(readNotificationIds());
+  ids.add(id);
+  localStorage.setItem(NOTIFICATION_READ_KEY, JSON.stringify([...ids]));
+}
+
 function buildNotifications() {
   return [
-    ...state.tasks.filter((task) => task.status === "Atrasada").map((task) => ({ type: "Tarefa vencida", title: task.title, route: "tarefas", badge: task.owner })),
-    ...state.cases.filter((item) => caseOperational(item).decision).map((item) => ({ type: "Processo exige decisão", title: caseTitle(item.id), route: "processos", badge: item.owner })),
-    ...state.cases.filter((item) => caseOperational(item).review).map((item) => ({ type: "Revisão urgente", title: caseTitle(item.id), route: "processos", badge: item.owner })),
-    ...state.finance.filter((item) => item.status === "Vencido" || item.status === "Pendente").map((item) => ({ type: "Financeiro pendente", title: item.description, route: "financeiro", badge: money(item.amount) })),
-    ...state.agenda.filter((event) => agendaDay(event) === 18).map((event) => ({ type: "Evento de hoje", title: event.title, route: "agenda", badge: agendaOwners(event).join(", ") })),
-  ].slice(0, 9);
+    ...state.tasks.filter((task) => task.status === "Atrasada").map((task) => ({ id: `task-${task.id}`, type: "Tarefa vencida", title: task.title, route: "tarefas", badge: task.owner, text: `${task.owner} · prazo ${task.due}` })),
+    ...state.tasks.filter((task) => String(task.due).toLowerCase().includes("hoje")).map((task) => ({ id: `task-today-${task.id}`, type: "Tarefa para hoje", title: task.title, route: "tarefas", badge: task.owner, text: taskInfo(task).clientLabel })),
+    ...state.cases.filter((item) => caseOperational(item).decision).map((item) => ({ id: `decision-${item.id}`, type: "Processo exige decisão", title: caseTitle(item.id), route: "processos", badge: item.owner, text: `${item.area} · ${caseOperational(item).prioridade}` })),
+    ...state.cases.filter((item) => caseOperational(item).review).map((item) => ({ id: `review-${item.id}`, type: "Revisão urgente", title: caseTitle(item.id), route: "processos", badge: item.owner, text: `Prazo ${item.deadline}` })),
+    ...state.clients.filter((client) => client.situation === "Sem retorno").map((client) => ({ id: `client-${client.id}`, type: "Cliente sem retorno", title: client.name, route: "clientes", badge: client.owner, text: client.lastContact || "sem retorno recente" })),
+    ...state.finance.filter((item) => item.status === "Vencido" || item.status === "Pendente").map((item) => ({ id: `finance-${item.id}`, type: "Financeiro pendente", title: item.description, route: "financeiro", badge: money(item.amount), text: `${clientName(item.clientId)} · ${item.status}` })),
+    ...state.agenda.filter((event) => agendaDay(event) === 18).map((event) => ({ id: `event-${event.id}`, type: "Evento de hoje", title: event.title, route: "agenda", badge: agendaOwners(event).join(", "), text: event.date })),
+  ].slice(0, 12);
+}
+
+function unreadNotifications() {
+  const read = new Set(readNotificationIds());
+  return buildNotifications().filter((item) => !read.has(item.id));
 }
 
 function notificationsContent() {
   const notifications = buildNotifications();
+  const read = new Set(readNotificationIds());
   return `
     <div class="drawer-body">
       <div class="panel-title"><h2>Alertas operacionais</h2><span>beta</span></div>
@@ -1567,19 +1613,21 @@ function notificationsContent() {
       <p>Notificações internas geradas com base nos dados locais demonstrativos. Alertas externos dependem de integração futura.</p>
       <div class="list">
         ${notifications.map((item) => `
-          <button class="record record-link" type="button" data-shortcut="${item.route}">
-            <div class="record-head"><div><h3>${item.title}</h3><p>${item.type}</p></div>${riskBadge(item.badge)}</div>
-          </button>
+          <article class="record notification-item ${read.has(item.id) ? "read" : ""}">
+            <div class="record-head"><div><h3>${item.title}</h3><p>${item.type} · ${item.text}</p></div>${riskBadge(item.badge)}</div>
+            <div class="table-actions">
+              <button class="btn" type="button" data-shortcut="${item.route}">Abrir</button>
+              <button class="btn" type="button" data-notification-read="${escapeAttr(item.id)}">${read.has(item.id) ? "Lida" : "Marcar como lida"}</button>
+            </div>
+          </article>
         `).join("") || `<div class="empty-state">Nenhuma notificação crítica agora.</div>`}
       </div>
     </div>
   `;
 }
 
-function globalSearch(query) {
-  const term = query.toLowerCase().trim();
-  if (!term) return `<div class="drawer-body"><p>Digite um termo para buscar em clientes, processos, tarefas, agenda e financeiro.</p></div>`;
-  const entries = [
+function globalSearchEntries() {
+  return [
     ...state.clients.map((item) => ({
       type: "Cliente",
       title: item.name,
@@ -1620,8 +1668,61 @@ function globalSearch(query) {
       route: "financeiro",
       haystack: [item.description, financeType(item), item.category, item.status, clientName(item.clientId), item.owner, money(item.amount)].join(" "),
     })),
+    ...state.reports.map((item) => ({
+      type: "Relatório",
+      title: item.model,
+      subtitle: `${item.created} · revisor: ${item.reviewer}`,
+      badge: item.status,
+      route: "relatorios",
+      haystack: [item.model, item.status, item.created, item.reviewer].join(" "),
+    })),
+    ...state.centralHistory.map((item) => ({
+      type: "Central LEX.OS",
+      title: item.title,
+      subtitle: `${item.module} · ${item.created}`,
+      badge: item.status,
+      route: "central",
+      haystack: [item.title, item.module, item.status, item.created].join(" "),
+    })),
   ];
-  const matches = entries.filter((item) => item.haystack.toLowerCase().includes(term)).slice(0, 12);
+}
+
+function searchMatches(query, limit = 12) {
+  const term = query.toLowerCase().trim();
+  if (!term) return [];
+  return globalSearchEntries().filter((item) => item.haystack.toLowerCase().includes(term)).slice(0, limit);
+}
+
+function renderGlobalSearchPanel(query) {
+  const panel = document.getElementById("globalSearchPanel");
+  if (!panel) return;
+  const term = query.trim();
+  if (term.length < 2) {
+    panel.classList.add("hidden");
+    panel.innerHTML = "";
+    return;
+  }
+  const matches = searchMatches(term, 7);
+  panel.innerHTML = matches.length ? matches.map((item) => `
+    <button class="global-search-result" type="button" data-shortcut="${item.route}">
+      <span>${item.type}</span>
+      <strong>${item.title}</strong>
+      <em>${item.subtitle}</em>
+    </button>
+  `).join("") : `<div class="global-search-empty">Nenhum resultado para "${escapeAttr(term)}".</div>`;
+  panel.classList.remove("hidden");
+  panel.querySelectorAll("[data-shortcut]").forEach((button) => {
+    button.addEventListener("click", () => {
+      panel.classList.add("hidden");
+      goToPage(button.dataset.shortcut);
+    });
+  });
+}
+
+function globalSearch(query) {
+  const term = query.toLowerCase().trim();
+  if (!term) return `<div class="drawer-body"><p>Digite um termo para buscar em clientes, processos, tarefas, agenda e financeiro.</p></div>`;
+  const matches = searchMatches(term, 12);
   return `
     <div class="drawer-body">
       <p>${matches.length ? `${matches.length} resultado(s) para "${term}".` : `Nenhum resultado localizado para "${term}".`}</p>
@@ -1702,9 +1803,13 @@ function bindActions2() {
   const copy = document.querySelector("[data-action='copy-template']");
   if (copy) {
     copy.addEventListener("click", async () => {
-      const text = document.getElementById("centralInput").value;
-      await navigator.clipboard.writeText(text);
-      toast("Prompt copiado.");
+      const text = document.getElementById("centralInput")?.value || "";
+      try {
+        await navigator.clipboard.writeText(text);
+        toast("Prompt copiado.");
+      } catch {
+        openInternalWindow("Copiar prompt", `<div class="drawer-body"><p>Não foi possível acessar a área de transferência automaticamente. Use o texto abaixo:</p><div class="demo-note">${text || "Sem prompt preenchido."}</div></div>`);
+      }
     });
   }
 }
@@ -1782,11 +1887,15 @@ function bindBulkActions() {
     const scope = panel.dataset.bulkActions;
     const all = panel.querySelector(`[data-select-all="${scope}"]`);
     const count = panel.querySelector(`[data-bulk-count="${scope}"]`);
+    const actionButtons = [...panel.querySelectorAll(`[data-bulk-action="${scope}"]`)];
     const rows = () => [...document.querySelectorAll(`[data-row-select="${scope}"]`)].filter((input) => !input.closest(".filterable-card")?.classList.contains("hidden"));
     const update = () => {
       const selected = rows().filter((input) => input.checked).length;
       if (count) count.textContent = `${selected} selecionado${selected === 1 ? "" : "s"}`;
       if (all) all.checked = selected > 0 && selected === rows().length;
+      actionButtons.forEach((button) => {
+        button.disabled = selected === 0;
+      });
     };
     all?.addEventListener("change", () => {
       rows().forEach((input) => {
@@ -1795,7 +1904,7 @@ function bindBulkActions() {
       update();
     });
     rows().forEach((input) => input.addEventListener("change", update));
-    panel.querySelectorAll(`[data-bulk-action="${scope}"]`).forEach((button) => {
+    actionButtons.forEach((button) => {
       button.addEventListener("click", () => {
         const selected = rows().filter((input) => input.checked).length;
         if (!selected) {
@@ -1984,15 +2093,19 @@ function actionContent(title) {
     return `
       <form class="drawer-form" data-finance-form>
         ${selectField("Tipo", ["Entrada", "Saída"])}
-        ${selectField("Categoria", ["Recebível", "Recebido", "Despesa administrativa", "Despesa processual", "Custas", "Diligência", "Pagamento de terceiro"])}
+        ${selectField("Categoria", ["Honorários contratuais", "Honorários sucumbenciais", "Consultoria", "Mensalidade", "Acordo", "Reembolso", "Custas", "Diligência", "Correspondente", "Ferramenta/software", "Marketing", "Impostos", "Pessoal", "Escritório", "Deslocamento", "Outro"])}
+        ${selectField("Centro de custo", ["Administrativo", "Processo específico", "Cliente específico", "Operação", "Marketing", "Comercial", "Outro"])}
         ${selectField("Cliente opcional", ["Sem cliente", ...state.clients.map((client) => client.name)])}
         ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.title} · ${clientName(item.clientId)}`)])}
         ${field("Descrição", "Honorários mensais")}
         ${field("Valor", "8500")}
         ${selectField("Status", ["A receber", "Recebido", "Vencido", "Pendente", "Pago", "Cancelado"])}
         ${field("Data prevista", "2026-06-25")}
+        ${field("Data de pagamento/recebimento", "")}
         ${selectField("Responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis"])}
+        ${selectField("Forma de pagamento", ["Não informado", "PIX", "Boleto", "Transferência", "Cartão", "Dinheiro", "Outro"])}
         ${selectField("Visibilidade", ["Sócios", "Equipe"])}
+        ${textAreaField("Observações", "Registro financeiro demonstrativo.")}
         <button class="btn primary" type="submit">Salvar movimentação no modo demo</button>
       </form>
     `;
@@ -2002,9 +2115,29 @@ function actionContent(title) {
     return formShell("Relatório assistido", [
       selectField("Modelo", ["Relatório executivo semanal", "Carteira de risco processual", "Financeiro interno"]),
       selectField("Período", ["Hoje", "7 dias", "30 dias", "Mês atual", "Todos os dados"]),
-      selectField("Revisor humano", ["Marina Costa", "Rafael Lima", "Bianca Reis"]),
+      selectField("Revisor responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis"]),
       textAreaField("Observações", "Gerar rascunho para revisão antes de compartilhar."),
     ]);
+  }
+
+  if (normalized.includes("prévia do relatório")) {
+    return `
+      <div class="drawer-body">
+        <div class="badges">${betaBadge()}</div>
+        <h3>${title.replace(/^Prévia do relatório:\s*/i, "")}</h3>
+        <p>Prévia demonstrativa com dados locais: clientes ativos, processos em atenção, tarefas vencidas e visão financeira resumida.</p>
+        <ul class="check-list">
+          <li>${state.clients.length} clientes monitorados.</li>
+          <li>${state.cases.filter((item) => caseOperational(item).urgent).length} processos urgentes ou em revisão.</li>
+          <li>${state.tasks.filter((item) => item.status === "Atrasada").length} tarefas atrasadas.</li>
+          <li>${state.finance.filter((item) => item.status === "Vencido").length} lançamento financeiro vencido.</li>
+        </ul>
+        <div class="table-actions">
+          <button class="btn" data-action="simulate" data-title="Exportar relatório Beta">Exportar CSV/PDF Beta</button>
+          <button class="btn" data-shortcut="relatorios">Voltar aos relatórios</button>
+        </div>
+      </div>
+    `;
   }
 
   if (normalized.includes("resumo executivo") || normalized.includes("executar apoio assistido")) {
@@ -2012,7 +2145,7 @@ function actionContent(title) {
       <div class="drawer-body">
         <p>Saída demonstrativa da Central LEX.OS para apoio interno supervisionado.</p>
         <ul class="check-list">
-          <li>2 frentes exigem decisão humana hoje: prazo vencido e cobrança pendente.</li>
+          <li>2 frentes exigem decisão hoje: prazo vencido e cobrança pendente.</li>
           <li>1 tarefa está sem responsável e deve ser redistribuída.</li>
           <li>O relatório pode ser gerado, mas precisa de revisão antes de envio.</li>
         </ul>
@@ -2085,7 +2218,19 @@ function actionContent(title) {
     ]);
   }
 
-  if (normalized.includes("concluir") || normalized.includes("marcar como pago")) {
+  if (normalized.includes("ver tarefa") || normalized.includes("editar") || normalized.includes("reatribuir") || normalized.includes("alterar prioridade") || normalized.includes("alterar responsável")) {
+    return formShell("Ajuste operacional", [
+      selectField("Responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis", "Sem responsável"]),
+      selectField("Prioridade", ["Normal", "Alta", "Urgente", "Revisão urgente"]),
+      textAreaField("Observação", "Registrar ajuste no histórico local demonstrativo."),
+    ]);
+  }
+
+  if (normalized.includes("enviar lembrete")) {
+    return betaNotice("Lembrete em Beta", "O envio externo de lembretes por e-mail, WhatsApp ou automação depende de integração segura. Nenhum disparo automático será feito nesta versão.");
+  }
+
+  if (normalized.includes("concluir") || normalized.includes("marcar como pago") || normalized.includes("marcar como recebido")) {
     return confirmationShell(title, "Atualiza status local, registra evento de auditoria e mantém reversão manual para implantação futura.");
   }
 
@@ -2274,6 +2419,15 @@ function openInternalWindow(title, content) {
       drawer.classList.add("hidden");
     });
   });
+  drawer.querySelectorAll("[data-notification-read]").forEach((button) => {
+    button.addEventListener("click", () => {
+      markNotificationRead(button.dataset.notificationRead);
+      toast("Notificação marcada como lida.");
+      const counter = document.querySelector("#notificationTrigger strong");
+      if (counter) counter.textContent = String(unreadNotifications().length);
+      openInternalWindow("Notificações internas", notificationsContent());
+    });
+  });
   drawer.querySelectorAll("[data-shortcut]").forEach((button) => {
     button.addEventListener("click", () => {
       drawer.classList.add("hidden");
@@ -2445,7 +2599,7 @@ function bindFinanceForm(drawer) {
   if (!form) return;
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const [type, category, clientLabel, caseLabel, description, amount, status, expectedDate, owner, visibility] = [...form.querySelectorAll("input, select")].map((item) => item.value.trim());
+    const [type, category, costCenter, clientLabel, caseLabel, description, amount, status, expectedDate, paidDate, owner, paymentMethod, visibility, notes] = [...form.querySelectorAll("input, select, textarea")].map((item) => item.value.trim());
     state.finance.unshift({
       id: `FIN-${Math.floor(Math.random() * 800 + 500)}`,
       clientId: selectedClientId(clientLabel),
@@ -2453,12 +2607,15 @@ function bindFinanceForm(drawer) {
       description,
       type,
       category,
+      costCenter,
       amount: Number(String(amount).replace(/\D/g, "")) || 0,
       status,
       expectedDate,
-      paidDate: status === "Recebido" || status === "Pago" ? expectedDate : "",
+      paidDate: paidDate || (status === "Recebido" || status === "Pago" ? expectedDate : ""),
       owner,
+      paymentMethod,
       visibility,
+      notes,
       due: expectedDate,
     });
     saveData();

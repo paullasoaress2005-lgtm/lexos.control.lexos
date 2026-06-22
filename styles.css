@@ -267,6 +267,85 @@ a:focus-visible {
   outline: none;
 }
 
+.global-search-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 240px;
+}
+
+.global-search-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 35;
+  display: grid;
+  gap: 6px;
+  max-height: min(420px, 70vh);
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 10, 23, 0.98);
+  box-shadow: var(--shadow);
+}
+
+.global-search-panel.hidden {
+  display: none;
+}
+
+.global-search-result {
+  display: grid;
+  gap: 3px;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: rgba(234, 244, 255, 0.045);
+  color: var(--ink);
+  text-align: left;
+}
+
+.global-search-result:hover,
+.global-search-result:focus-visible {
+  border-color: rgba(0, 178, 255, 0.4);
+  background: rgba(0, 178, 255, 0.1);
+}
+
+.global-search-result span,
+.global-search-result em,
+.global-search-empty {
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.global-search-result strong {
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.global-search-empty {
+  padding: 12px;
+}
+
+html[data-theme="light"] .global-search-panel {
+  border-color: #dce8f2;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(10, 26, 42, 0.16);
+}
+
+html[data-theme="light"] .global-search-result {
+  background: #f8fbfe;
+}
+
+html[data-theme="light"] .global-search-result:hover,
+html[data-theme="light"] .global-search-result:focus-visible {
+  border-color: #b9e8fa;
+  background: #eaf4ff;
+}
+
 .field select,
 select {
   background-color: var(--select-bg);
@@ -350,6 +429,12 @@ html[data-theme="light"] select option:hover {
   font-family: "Segoe UI", sans-serif;
   font-size: 13px;
   font-weight: 800;
+}
+
+.btn:disabled,
+.bulk-actions .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
 }
 
 html[data-theme="light"] .btn {
@@ -1788,6 +1873,18 @@ html[data-theme="light"] .bulk-actions {
   border-radius: 10px;
   background: rgba(234, 244, 255, 0.05);
   padding: 12px;
+}
+
+button.task-pulse {
+  width: 100%;
+  color: var(--ink);
+  text-align: left;
+}
+
+button.task-pulse:hover,
+button.task-pulse:focus-visible {
+  border-color: rgba(0, 178, 255, 0.46);
+  background: rgba(0, 178, 255, 0.09);
 }
 
 .client-summary-grid strong,
