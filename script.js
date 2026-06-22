@@ -496,7 +496,16 @@ function clientName(id) {
 
 function caseTitle(id) {
   const item = state.cases.find((current) => current.id === id);
-  return item ? `${item.title} · ${item.id}` : id || "Sem processo";
+  return item ? `${item.title} · ${clientName(item.clientId)}` : id ? "Processo vinculado" : "Sem processo";
+}
+
+function caseNumber(id) {
+  const map = {
+    "PROC-1029": "0801029-21.2026.8.10.0001",
+    "PROC-1034": "0801034-48.2026.5.16.0002",
+    "PROC-1041": "0801041-33.2026.8.10.0003",
+  };
+  return map[id] || "número em validação";
 }
 
 function clientContact(client) {
@@ -593,12 +602,79 @@ function moduleFilters(scope, placeholder, filtersConfig) {
 }
 
 function moduleEmpty(scope, text) {
-  return `<div class="module-empty hidden" data-empty-for="${scope}"><strong>Nenhum resultado encontrado.</strong><span>${text}</span></div>`;
+  return `<div class="module-empty hidden" data-empty-for="${scope}"><strong>Nenhum resultado encontrado.</strong><span>${text}</span><button class="btn" type="button" data-filter-clear="${scope}">Limpar filtros</button></div>`;
 }
 
 function riskBadge(value) {
-  const kind = value === "Alto" || value === "Atrasada" || value === "Vencido" ? "danger" : value === "Médio" || value === "Em atenção" || value === "Urgente" ? "warn" : "ok";
+  const kind = value === "Alto" || value === "Atrasada" || value === "Vencido" || value === "Crítico" || value === "Revisão urgente" ? "danger" : value === "Médio" || value === "Em atenção" || value === "Urgente" || value === "Pendente" ? "warn" : "ok";
   return `<span class="badge ${kind}">${value}</span>`;
+}
+
+function betaBadge() {
+  return `<span class="badge beta">Beta</span>`;
+}
+
+function betaNotice(title, text) {
+  return `
+    <div class="drawer-body beta-notice">
+      <div class="badges">${betaBadge()}</div>
+      <h3>${title}</h3>
+      <p>${text}</p>
+      <p class="demo-note">Recurso preparado na interface. A ativação completa depende de back-end, permissões e credenciais quando aplicável.</p>
+    </div>
+  `;
+}
+
+function entityTimeline(type, id) {
+  const now = "22/06/2026";
+  const events = [];
+  if (type === "cliente") {
+    const client = state.clients.find((item) => item.id === id);
+    if (!client) return events;
+    linkedCases(id).forEach((item) => events.push(`${now} - Processo vinculado: ${caseTitle(item.id)}`));
+    state.tasks.filter((item) => item.clientId === id).forEach((task) => events.push(`${now} - Tarefa registrada: ${task.title}`));
+    state.agenda.filter((item) => item.clientId === id).forEach((event) => events.push(`${now} - Evento marcado: ${event.title}`));
+    state.finance.filter((item) => item.clientId === id).forEach((item) => events.push(`${now} - Financeiro: ${item.description} (${item.status})`));
+    events.push(`${client.updatedAt || now} - Cadastro atualizado por ${client.owner}`);
+  }
+  if (type === "processo") {
+    const item = state.cases.find((current) => current.id === id);
+    if (!item) return events;
+    events.push(`${now} - Prioridade atual: ${caseOperational(item).prioridade}`);
+    events.push(`${now} - Próxima ação: ${item.proximaAcao || caseOperational(item).prioridade}`);
+    state.tasks.filter((task) => task.caseId === id).forEach((task) => events.push(`${now} - Tarefa vinculada: ${task.title}`));
+    state.agenda.filter((event) => event.caseId === id).forEach((event) => events.push(`${now} - Evento vinculado: ${event.title}`));
+  }
+  return events;
+}
+
+function quickViews(scope, views) {
+  return `
+    <div class="quick-views" data-quick-views="${scope}">
+      ${views.map((view) => `<button class="quick-view" type="button" data-quick-filter="${scope}" data-filter-value="${escapeAttr(view.value)}">${view.label}</button>`).join("")}
+    </div>
+  `;
+}
+
+function bulkActions(scope, actions) {
+  return `
+    <div class="bulk-actions" data-bulk-actions="${scope}">
+      <label><input type="checkbox" data-select-all="${scope}" /> Selecionar visíveis</label>
+      <span data-bulk-count="${scope}">0 selecionados</span>
+      ${actions.map((action) => `<button class="btn" type="button" data-bulk-action="${scope}" data-title="${escapeAttr(action)}">${action}</button>`).join("")}
+    </div>
+  `;
+}
+
+function betaActionCard(title, text, actionTitle) {
+  return `
+    <article class="beta-card">
+      <div class="badges">${betaBadge()}</div>
+      <h3>${title}</h3>
+      <p>${text}</p>
+      <button class="btn" type="button" data-action="simulate" data-title="${escapeAttr(actionTitle || title)}">Abrir preparação</button>
+    </article>
+  `;
 }
 
 function toast(message) {
@@ -672,7 +748,11 @@ function renderApp() {
       <main class="main" id="workspace" tabindex="-1">
         <header class="topbar">
           <label class="sr-only" for="globalSearch">Busca global</label>
-          <input class="search-input" id="globalSearch" name="globalSearch" autocomplete="off" placeholder="Buscar cliente, processo, tarefa ou relatório…" />
+          <input class="search-input" id="globalSearch" name="globalSearch" autocomplete="off" placeholder="Buscar cliente, processo, tarefa, agenda ou financeiro…" />
+          <button class="notification-trigger" id="notificationTrigger" type="button" aria-label="Abrir notificações internas">
+            <span aria-hidden="true">!</span>
+            <strong>${buildNotifications().length}</strong>
+          </button>
           <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar modo claro e escuro" title="Alternar tema">
             <span aria-hidden="true">${loadTheme() === "light" ? "☀" : "☾"}</span>
           </button>
@@ -713,6 +793,9 @@ function renderApp() {
     document.getElementById("officeProfileToggle").setAttribute("aria-expanded", String(expanded));
   });
   document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+  document.getElementById("notificationTrigger")?.addEventListener("click", () => {
+    openInternalWindow("Notificações internas", notificationsContent());
+  });
   document.querySelector("[data-history-back]")?.addEventListener("click", () => {
     document.getElementById("officeProfileMenu")?.classList.add("hidden");
     returnToPreviousPage();
@@ -735,7 +818,7 @@ function renderApp() {
   });
   document.getElementById("globalSearch").addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
-      openDrawer("Busca global", globalSearch(event.target.value));
+      openInternalWindow("Busca global", globalSearch(event.target.value));
     }
   });
   renderPage();
@@ -780,6 +863,12 @@ function renderDashboard() {
   const attentionClients = state.clients.filter((client) => client.situation !== "Operação regular" && client.status !== "Arquivado").length;
   const riskyCases = state.cases.filter((item) => item.risk === "Alto" || item.deadline === "vencido").length;
   const overdueFinance = state.finance.filter((item) => item.status === "Vencido").reduce((sum, item) => sum + item.amount, 0);
+  const actionItems = [
+    ...state.cases.filter((item) => caseOperational(item).decision).map((item) => ({ title: caseTitle(item.id), text: `${caseOperational(item).prioridade} · ${item.owner}`, tags: ["Processo", "Decisão"], route: "processos" })),
+    ...state.tasks.filter((item) => item.status === "Atrasada").map((item) => ({ title: item.title, text: `${taskInfo(item).clientLabel} · ${item.owner}`, tags: ["Tarefa", "Atrasada"], route: "tarefas" })),
+    ...state.agenda.filter((item) => agendaDay(item) === 18).map((item) => ({ title: item.title, text: `${item.date} · ${agendaOwners(item).join(", ")}`, tags: ["Agenda", item.type], route: "agenda" })),
+    ...state.finance.filter((item) => item.status === "Vencido").map((item) => ({ title: item.description, text: `${clientName(item.clientId)} · ${money(item.amount)}`, tags: ["Financeiro", "Vencido"], route: "financeiro" })),
+  ].slice(0, 6);
 
   return `
     ${pageHeader("Dashboard executivo", "Operação do escritório", "Visão geral de clientes, processos, tarefas, financeiro e Central LEX.OS.", '<button class="btn primary" data-action="simulate" data-title="Adicionar rápido">+ Adicionar</button><button class="btn" data-action="simulate" data-title="Resumo executivo">Gerar apoio assistido</button>')}
@@ -790,11 +879,26 @@ function renderDashboard() {
       ${metric("Financeiro vencido", money(overdueFinance), "sem cobrança automática", "financeiro")}
       ${metric("Central LEX.OS", state.centralHistory.length, "execuções supervisionadas", "central")}
     </section>
+    <section class="panel action-center">
+      <div class="panel-title"><h2>Central de Ação</h2><span>prioridade real</span></div>
+      <div class="action-grid">
+        ${actionItems.map((item) => `
+          <button class="action-card" type="button" data-shortcut="${item.route}">
+            <div>
+              <h3>${item.title}</h3>
+              <p>${item.text}</p>
+            </div>
+            <div class="badges">${item.tags.map(riskBadge).join("")}</div>
+            <strong>Abrir</strong>
+          </button>
+        `).join("")}
+      </div>
+    </section>
     <section class="grid two" style="margin-top:14px">
       <div class="panel">
         <div class="panel-title"><h2>Fila de prioridades</h2><span>decisão</span></div>
         <div class="list">
-          ${record("Prazo vencido em processo trabalhista", "PROC-1034 exige revisão humana antes de nova movimentação.", ["Prazo", "Risco médio", "Rafael Lima"], "processos")}
+          ${record("Prazo vencido em processo trabalhista", "Defesa em reclamação trabalhista exige revisão humana antes de nova movimentação.", ["Prazo", "Risco médio", "Rafael Lima"], "processos")}
           ${record("Cliente sem retorno", "João Ricardo Nunes está há 21 dias sem retorno registrado.", ["Follow-up", "Carteira"], "clientes")}
           ${record("Cobrança vencida", "Almeida & Torres possui honorários mensais vencidos há 8 dias.", ["Financeiro", "Vencido"], "financeiro")}
         </div>
@@ -826,6 +930,13 @@ function renderClients() {
       { label: "Vínculo", options: [{ value: "com-processo", label: "Com processo" }, { value: "sem-processo", label: "Sem processo" }, { value: "processo-urgente", label: "Processo urgente" }, { value: "exige-decisao", label: "Exige decisão" }] },
       { label: "Responsável", options: ["Marina Costa", "Rafael Lima", "Bianca Reis"].map((name) => ({ value: name.toLowerCase(), label: name })) },
     ])}
+    ${quickViews("clientes", [
+      { label: "Ativos", value: "ativo" },
+      { label: "Com pendência", value: "cobrança pendente" },
+      { label: "Processo urgente", value: "processo-urgente" },
+      { label: "Sem processo", value: "sem-processo" },
+    ])}
+    ${bulkActions("clientes", ["Alterar responsável", "Marcar ativo/inativo", "Aplicar status"])}
     <section class="client-layout">
       <aside class="client-summary panel">
         <div class="panel-title"><h2>Carteira</h2><span>visão rápida</span></div>
@@ -863,6 +974,13 @@ function renderCases() {
       { label: "Área", options: ["Cível", "Trabalhista", "Tributário"].map((area) => ({ value: area.toLowerCase(), label: area })) },
       { label: "Responsável", options: ["Marina Costa", "Rafael Lima", "Bianca Reis"].map((name) => ({ value: name.toLowerCase(), label: name })) },
     ])}
+    ${quickViews("processos", [
+      { label: "Urgentes", value: "urgente" },
+      { label: "Exigem decisão", value: "exige-decisao" },
+      { label: "Revisão urgente", value: "revisao-urgente" },
+      { label: "Em acompanhamento", value: "em-acompanhamento" },
+    ])}
+    ${bulkActions("processos", ["Marcar em acompanhamento", "Marcar revisão urgente", "Alterar responsável", "Exportar Beta"])}
     <section class="case-board">
       ${columns.map(([label, matcher]) => {
         const cases = state.cases.filter(matcher);
@@ -895,6 +1013,14 @@ function renderTasks() {
       { label: "Vínculo", options: [{ value: "com-cliente", label: "Com cliente" }, { value: "com-processo", label: "Com processo" }, { value: "sem-vinculo", label: "Sem vínculo" }] },
       { label: "Prioridade", options: [{ value: "urgente", label: "Urgente" }, { value: "alta", label: "Alta" }, { value: "normal", label: "Normal" }, { value: "sem-responsavel", label: "Sem responsável" }] },
     ])}
+    ${quickViews("tarefas", [
+      { label: "Hoje", value: "hoje" },
+      { label: "Atrasadas", value: "atrasada" },
+      { label: "Sem responsável", value: "sem-responsavel" },
+      { label: "Administrativas", value: "administrativa" },
+      { label: "Processuais", value: "processual" },
+    ])}
+    ${bulkActions("tarefas", ["Marcar concluídas", "Alterar prazo", "Alterar prioridade", "Reatribuir"])}
     <section class="task-layout">
       <div class="task-rail panel">
         <div class="panel-title"><h2>Comando</h2><span>operação</span></div>
@@ -934,11 +1060,12 @@ function clientCard(client) {
     .toUpperCase();
   return `
     <article class="client-card filterable-card" data-filter-item="clientes" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
+      <label class="select-row"><input type="checkbox" data-row-select="clientes" /></label>
       <div class="client-avatar" aria-hidden="true">${initials}</div>
       <div class="client-card-main">
         <div class="client-card-head">
           <div>
-            <span class="record-meta">${client.id} · ${client.type}</span>
+            <span class="record-meta">${client.type} · atualizado ${contact.updatedAt}</span>
             <h2>${client.name}</h2>
           </div>
           <strong>${client.owner}</strong>
@@ -974,7 +1101,8 @@ function caseBoardCard(item) {
   const search = [item.id, item.title, item.area, item.owner, clientName(item.clientId), item.deadline, item.lastMove, op.statusPrincipal, op.prioridade].join(" ");
   return `
     <article class="case-card filterable-card" data-filter-item="processos" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
-      <div class="case-id">${item.id}</div>
+      <label class="select-row"><input type="checkbox" data-row-select="processos" /></label>
+      <div class="case-id">${caseNumber(item.id)}</div>
       <h3>${item.title}</h3>
       <p>${clientName(item.clientId)}</p>
       <div class="case-meta-grid">
@@ -1004,11 +1132,12 @@ function taskQueueItem(task) {
   const search = [task.id, task.title, info.description, info.category, info.status, info.priority, task.owner, info.clientLabel, info.caseLabel].join(" ");
   return `
     <article class="task-item ${tone} filterable-card" data-filter-item="tarefas" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
+      <label class="select-row"><input type="checkbox" data-row-select="tarefas" /></label>
       <div class="task-check" aria-hidden="true"></div>
       <div class="task-content">
         <div class="task-head">
           <div>
-            <span class="record-meta">${task.id} · ${task.due}</span>
+            <span class="record-meta">Prazo: ${task.due}</span>
             <h2>${task.title}</h2>
           </div>
           <div class="badges">${riskBadge(info.status)}${riskBadge(info.priority)}${riskBadge(info.category)}</div>
@@ -1048,6 +1177,8 @@ function renderFinance() {
   const paidExits = exits.filter((item) => item.status === "Pago").reduce((sum, item) => sum + item.amount, 0);
   const pendingExits = exits.filter((item) => item.status !== "Pago").reduce((sum, item) => sum + item.amount, 0);
   const overdue = state.finance.filter((item) => item.status === "Vencido").reduce((sum, item) => sum + item.amount, 0);
+  const projectedIn = entries.filter((item) => item.status !== "Recebido").reduce((sum, item) => sum + item.amount, 0);
+  const projectedOut = exits.filter((item) => item.status !== "Pago").reduce((sum, item) => sum + item.amount, 0);
   return `
     ${pageHeader("Financeiro", "Controle financeiro interno", "Entradas, saídas, recebíveis, pendências e visão líquida demonstrativa.", '<button class="btn primary" data-action="simulate" data-title="Nova cobrança">Nova movimentação</button>')}
     <section class="grid metrics">
@@ -1055,6 +1186,7 @@ function renderFinance() {
       ${metric("A receber", money(receivable), "receita prevista", "financeiro")}
       ${metric("Saídas pagas", money(paidExits), "gastos realizados", "financeiro")}
       ${metric("Líquido realizado", money(received - paidExits), "visível para sócio/admin", "financeiro")}
+      ${metric("Líquido projetado", money(projectedIn - projectedOut), "entradas previstas menos saídas", "financeiro")}
       ${metric("Pendências", money(overdue + pendingExits), "vencidos e pendentes", "financeiro")}
     </section>
     ${moduleFilters("financeiro", "Buscar cliente, descrição, responsável, entrada ou saída", [
@@ -1063,6 +1195,13 @@ function renderFinance() {
       { label: "Período", options: [{ value: "hoje", label: "Hoje" }, { value: "semana", label: "Esta semana" }, { value: "mes", label: "Este mês" }, { value: "todos", label: "Todos" }] },
       { label: "Visibilidade", options: [{ value: "sócios", label: "Sócios/admin" }, { value: "equipe", label: "Equipe" }] },
     ])}
+    ${quickViews("financeiro", [
+      { label: "Vencidos", value: "vencido" },
+      { label: "A receber", value: "a receber" },
+      { label: "Gastos do mês", value: "saída" },
+      { label: "Recebidos", value: "recebido" },
+    ])}
+    ${bulkActions("financeiro", ["Marcar selecionados como pagos", "Exportar selecionados Beta", "Enviar lembrete Beta"])}
     <section class="finance-layout">
       <div class="finance-ledger">
         ${state.finance.map(financeCard).join("")}
@@ -1088,8 +1227,9 @@ function financeCard(item) {
   const search = [item.id, item.description, type, item.category, item.status, item.owner, clientName(item.clientId), caseTitle(item.caseId), item.due].join(" ");
   return `
     <article class="finance-card ${type === "Saída" ? "expense" : "income"} filterable-card" data-filter-item="financeiro" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
+      <label class="select-row"><input type="checkbox" data-row-select="financeiro" /></label>
       <div>
-        <span class="record-meta">${item.id} · ${type} · ${item.category || "Movimentação"}</span>
+        <span class="record-meta">${type} · ${item.category || "Movimentação"} · ${item.expectedDate || item.due}</span>
         <h2>${item.description}</h2>
         <p>${item.clientId ? clientName(item.clientId) : "Sem cliente vinculado"}${item.caseId ? ` · ${caseTitle(item.caseId)}` : ""}</p>
       </div>
@@ -1108,9 +1248,9 @@ function renderPartners() {
       <div class="panel">
         <div class="panel-title"><h2>Decisões recomendadas</h2><span>humano no controle</span></div>
         <div class="list">
-          ${record("Repriorizar prazo vencido", "Tarefa TAR-201 e processo PROC-1034 devem ser tratados antes de novas demandas.", ["Alta prioridade"], "processos")}
-          ${record("Ativar cobrança consultiva", "Cliente CLI-001 possui valor vencido e processo ativo sensível.", ["Financeiro", "Carteira"], "financeiro")}
-          ${record("Delegar follow-up sem dono", "Tarefa TAR-202 está sem responsável e vence hoje.", ["Operação"], "tarefas")}
+          ${record("Repriorizar prazo vencido", "A revisão trabalhista e sua tarefa vinculada devem ser tratadas antes de novas demandas.", ["Alta prioridade"], "processos")}
+          ${record("Ativar cobrança consultiva", "Almeida & Torres possui valor vencido e processo ativo sensível.", ["Financeiro", "Carteira"], "financeiro")}
+          ${record("Delegar follow-up sem dono", "O follow-up de proposta está sem responsável e vence hoje.", ["Operação"], "tarefas")}
         </div>
       </div>
       <div class="panel">
@@ -1131,6 +1271,11 @@ function renderPartners() {
 function renderReports() {
   return `
     ${pageHeader("Relatórios", "Geração de relatórios assistidos", "Modelos prontos e histórico com revisão humana obrigatória.", '<button class="btn primary" data-action="simulate" data-title="Gerar relatório">Gerar relatório</button>')}
+    <section class="beta-grid">
+      ${betaActionCard("Exportação PDF/CSV/Excel", "Saídas planejadas para relatórios, listas e financeiro.", "Exportar relatório Beta")}
+      ${betaActionCard("Produtividade por responsável", "Indicadores por pessoa, prazo e conclusão.", "Relatório Beta de produtividade")}
+      ${betaActionCard("Fluxo financeiro", "Entradas, saídas, previsto, realizado e pendências.", "Relatório Beta financeiro")}
+    </section>
     <section class="grid two">
       <div class="panel">
         <div class="panel-title"><h2>Modelos prontos</h2><span>templates</span></div>
@@ -1143,7 +1288,7 @@ function renderReports() {
       <div class="panel">
         <div class="panel-title"><h2>Histórico</h2><span>revisão</span></div>
         <div class="list">
-          ${state.reports.map((report) => record(report.model, `${report.id} · ${report.created} · revisor: ${report.reviewer}`, [report.status])).join("")}
+          ${state.reports.map((report) => record(report.model, `${report.created} · revisor: ${report.reviewer}`, [report.status, "Exportar Beta"], "relatorios")).join("")}
         </div>
       </div>
     </section>
@@ -1154,6 +1299,11 @@ function renderCentral() {
   const tabs = ["Dossiê rápido", "Prompts", "Agentes guiados", "Fluxos", "Playbooks", "Relatórios"];
   return `
     ${pageHeader("Central LEX.OS", "Bancada assistida por IA supervisionada", "Apoio para dossiês, prompts, sínteses, planos de ação e relatórios. Sem envio externo automático.", '<button class="btn primary" data-action="simulate" data-title="Executar apoio assistido">Executar apoio assistido</button>')}
+    <section class="beta-grid">
+      ${betaActionCard("Sugerir prioridade com IA", "Preparado para processos, tarefas e agenda.", "Sugerir prioridade com IA")}
+      ${betaActionCard("Identificar pendências", "Apoio supervisionado em clientes e financeiro.", "Identificar pendências com IA")}
+      ${betaActionCard("Gerar resumo operacional", "Rascunhos internos com revisão humana.", "Gerar resumo com IA")}
+    </section>
     <div class="module-tabs">${tabs.map((tab) => `<button class="${tab === currentTab ? "active" : ""}" data-tab="${tab}">${tab}</button>`).join("")}</div>
     <section class="grid two">
       <div class="panel">
@@ -1170,7 +1320,7 @@ function renderCentral() {
       <div class="panel">
         <div class="panel-title"><h2>Histórico de execuções</h2><span>local</span></div>
         <div class="list">
-          ${state.centralHistory.map((item) => record(item.title, `${item.id} · ${item.module} · ${item.created}`, [item.status, "Copiar", "Reutilizar", "Arquivar"])).join("")}
+          ${state.centralHistory.map((item) => record(item.title, `${item.module} · ${item.created}`, [item.status, "Copiar", "Reutilizar", "Arquivar"])).join("")}
         </div>
       </div>
     </section>
@@ -1180,6 +1330,11 @@ function renderCentral() {
 function renderSettings() {
   return `
     ${pageHeader("Configurações", "Identidade, equipe e ambiente", "Perfil do usuário, permissões, LGPD, auditoria e implantação.")}
+    <section class="beta-grid">
+      ${betaActionCard("Gestão de acessos", "Perfis de sócio/admin, advogado, financeiro, atendimento e visão limitada.", "Permissões avançadas Beta")}
+      ${betaActionCard("Integração Gmail/N8N", "Importar comprovantes, lembretes, webhooks e automações futuras.", "Integração Gmail/N8N Beta")}
+      ${betaActionCard("Auditoria conectada", "Histórico real por usuário, entidade, data e ação.", "Auditoria Beta")}
+    </section>
     <section class="grid three">
       ${settingsCard("Identidade do escritório", ["Nome: " + state.office.name, "Responsável: " + state.office.owner, "Preferências visuais no topo direito"])}
       ${settingsCard("Equipe e permissões", ["Sócios", "Advogados", "Operação", "Financeiro"])}
@@ -1393,17 +1548,92 @@ function openDrawer(title, content) {
   document.getElementById("closeDrawer").addEventListener("click", () => drawer.classList.add("hidden"));
 }
 
+function buildNotifications() {
+  return [
+    ...state.tasks.filter((task) => task.status === "Atrasada").map((task) => ({ type: "Tarefa vencida", title: task.title, route: "tarefas", badge: task.owner })),
+    ...state.cases.filter((item) => caseOperational(item).decision).map((item) => ({ type: "Processo exige decisão", title: caseTitle(item.id), route: "processos", badge: item.owner })),
+    ...state.cases.filter((item) => caseOperational(item).review).map((item) => ({ type: "Revisão urgente", title: caseTitle(item.id), route: "processos", badge: item.owner })),
+    ...state.finance.filter((item) => item.status === "Vencido" || item.status === "Pendente").map((item) => ({ type: "Financeiro pendente", title: item.description, route: "financeiro", badge: money(item.amount) })),
+    ...state.agenda.filter((event) => agendaDay(event) === 18).map((event) => ({ type: "Evento de hoje", title: event.title, route: "agenda", badge: agendaOwners(event).join(", ") })),
+  ].slice(0, 9);
+}
+
+function notificationsContent() {
+  const notifications = buildNotifications();
+  return `
+    <div class="drawer-body">
+      <div class="panel-title"><h2>Alertas operacionais</h2><span>beta</span></div>
+      <div class="badges">${betaBadge()}</div>
+      <p>Notificações internas geradas com base nos dados locais demonstrativos. Alertas externos dependem de integração futura.</p>
+      <div class="list">
+        ${notifications.map((item) => `
+          <button class="record record-link" type="button" data-shortcut="${item.route}">
+            <div class="record-head"><div><h3>${item.title}</h3><p>${item.type}</p></div>${riskBadge(item.badge)}</div>
+          </button>
+        `).join("") || `<div class="empty-state">Nenhuma notificação crítica agora.</div>`}
+      </div>
+    </div>
+  `;
+}
+
 function globalSearch(query) {
   const term = query.toLowerCase().trim();
-  if (!term) return "Digite um termo para buscar nos dados fictícios.";
-  const matches = [
-    ...state.clients.map((item) => ["Cliente", item.name]),
-    ...state.cases.map((item) => ["Processo", item.title]),
-    ...state.tasks.map((item) => ["Tarefa", item.title]),
-    ...state.reports.map((item) => ["Relatório", item.model]),
-  ].filter(([, text]) => text.toLowerCase().includes(term));
-  if (!matches.length) return "Nenhum resultado localizado nos dados fictícios.";
-  return matches.map(([type, text]) => `<strong>${type}</strong>: ${text}`).join("<br>");
+  if (!term) return `<div class="drawer-body"><p>Digite um termo para buscar em clientes, processos, tarefas, agenda e financeiro.</p></div>`;
+  const entries = [
+    ...state.clients.map((item) => ({
+      type: "Cliente",
+      title: item.name,
+      subtitle: `${item.type} · ${linkedCases(item.id).length} processo(s) · ${item.owner}`,
+      badge: item.status,
+      route: "clientes",
+      haystack: [item.name, item.type, item.document, item.phone, item.email, item.owner, item.situation, ...linkedCases(item.id).map((caseItem) => `${caseItem.title} ${caseNumber(caseItem.id)}`)].join(" "),
+    })),
+    ...state.cases.map((item) => ({
+      type: "Processo",
+      title: `${item.title} · ${caseNumber(item.id)}`,
+      subtitle: `${clientName(item.clientId)} · ${item.area} · responsável: ${item.owner}`,
+      badge: caseOperational(item).prioridade,
+      route: "processos",
+      haystack: [item.title, caseNumber(item.id), clientName(item.clientId), item.area, item.owner, item.status, item.risk, item.deadline, caseOperational(item).prioridade].join(" "),
+    })),
+    ...state.tasks.map((item) => ({
+      type: "Tarefa",
+      title: item.title,
+      subtitle: `${taskInfo(item).category} · ${taskInfo(item).clientLabel} · ${item.owner}`,
+      badge: item.status,
+      route: "tarefas",
+      haystack: [item.title, item.description, taskInfo(item).category, taskInfo(item).clientLabel, taskInfo(item).caseLabel, item.owner, item.status, item.urgency].join(" "),
+    })),
+    ...state.agenda.map((item) => ({
+      type: "Agenda",
+      title: item.title,
+      subtitle: `${item.date} · ${agendaOwners(item).join(", ")} · ${agendaLinkLabel(item)}`,
+      badge: item.type,
+      route: "agenda",
+      haystack: [item.title, item.type, item.date, agendaOwners(item).join(" "), agendaLinkLabel(item), item.status].join(" "),
+    })),
+    ...state.finance.map((item) => ({
+      type: "Financeiro",
+      title: item.description,
+      subtitle: `${financeType(item)} · ${clientName(item.clientId)} · ${item.owner}`,
+      badge: item.status,
+      route: "financeiro",
+      haystack: [item.description, financeType(item), item.category, item.status, clientName(item.clientId), item.owner, money(item.amount)].join(" "),
+    })),
+  ];
+  const matches = entries.filter((item) => item.haystack.toLowerCase().includes(term)).slice(0, 12);
+  return `
+    <div class="drawer-body">
+      <p>${matches.length ? `${matches.length} resultado(s) para "${term}".` : `Nenhum resultado localizado para "${term}".`}</p>
+      <div class="list global-results">
+        ${matches.map((item) => `
+          <button class="record record-link" type="button" data-shortcut="${item.route}">
+            <div class="record-head"><div><span class="record-meta">${item.type}</span><h3>${item.title}</h3><p>${item.subtitle}</p></div>${riskBadge(item.badge)}</div>
+          </button>
+        `).join("") || `<div class="module-empty"><strong>Nenhum resultado encontrado.</strong><span>Tente buscar por nome, número do processo, telefone, responsável, prazo ou status.</span></div>`}
+      </div>
+    </div>
+  `;
 }
 
 function bindActions2() {
@@ -1434,6 +1664,9 @@ function bindActions2() {
 
   bindProfileForm(document.getElementById("screen"));
   bindModuleFilters();
+  bindQuickViews();
+  bindBulkActions();
+  bindEmptyFilterClear();
 
   document.querySelectorAll("[data-action='simulate']").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1523,6 +1756,67 @@ function bindModuleFilters() {
       apply();
     });
     apply();
+  });
+}
+
+function bindQuickViews() {
+  document.querySelectorAll("[data-quick-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const scope = button.dataset.quickFilter;
+      const value = button.dataset.filterValue || "";
+      const panel = document.querySelector(`[data-filter-panel="${scope}"]`);
+      if (!panel) return;
+      const selects = [...panel.querySelectorAll(`[data-filter-select="${scope}"]`)];
+      const target = selects.find((select) => [...select.options].some((option) => option.value === value));
+      if (target) {
+        target.value = value;
+        target.dispatchEvent(new Event("change", { bubbles: true }));
+        toast(`Visão rápida aplicada: ${button.textContent.trim()}.`);
+      }
+    });
+  });
+}
+
+function bindBulkActions() {
+  document.querySelectorAll("[data-bulk-actions]").forEach((panel) => {
+    const scope = panel.dataset.bulkActions;
+    const all = panel.querySelector(`[data-select-all="${scope}"]`);
+    const count = panel.querySelector(`[data-bulk-count="${scope}"]`);
+    const rows = () => [...document.querySelectorAll(`[data-row-select="${scope}"]`)].filter((input) => !input.closest(".filterable-card")?.classList.contains("hidden"));
+    const update = () => {
+      const selected = rows().filter((input) => input.checked).length;
+      if (count) count.textContent = `${selected} selecionado${selected === 1 ? "" : "s"}`;
+      if (all) all.checked = selected > 0 && selected === rows().length;
+    };
+    all?.addEventListener("change", () => {
+      rows().forEach((input) => {
+        input.checked = all.checked;
+      });
+      update();
+    });
+    rows().forEach((input) => input.addEventListener("change", update));
+    panel.querySelectorAll(`[data-bulk-action="${scope}"]`).forEach((button) => {
+      button.addEventListener("click", () => {
+        const selected = rows().filter((input) => input.checked).length;
+        if (!selected) {
+          toast("Selecione pelo menos um item visível.");
+          return;
+        }
+        openInternalWindow(button.dataset.title || "Ação em massa", confirmationShell(button.dataset.title || "Ação em massa", `${selected} item(ns) selecionado(s). A execução real será controlada por permissões no back-end.`));
+      });
+    });
+    update();
+  });
+}
+
+function bindEmptyFilterClear() {
+  document.querySelectorAll(".module-empty [data-filter-clear]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const scope = button.dataset.filterClear;
+      const panel = document.querySelector(`[data-filter-panel="${scope}"]`);
+      if (!panel) return;
+      panel.querySelector(`[data-filter-clear="${scope}"]`)?.click();
+    });
   });
 }
 
@@ -1618,23 +1912,36 @@ function actionContent(title) {
   }
 
   if (normalized.includes("novo cliente") || normalized.includes("cadastrar cliente")) {
-    return formShell("Cliente", [
-      field("Nome do cliente", "Almeida & Torres Ltda."),
-      selectField("Tipo", ["Pessoa jurídica", "Pessoa física"]),
-      selectField("Status", ["Ativo", "Em atenção", "Arquivado"]),
-      selectField("Responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis"]),
-      selectField("Situação operacional", ["Operação regular", "Em atenção", "Sem retorno", "Cobrança pendente"]),
-    ]);
+    return `
+      <form class="drawer-form" data-client-form>
+        ${field("Nome do cliente", "Novo cliente demonstrativo")}
+        ${selectField("Tipo", ["Pessoa jurídica", "Pessoa física"])}
+        ${field("CPF/CNPJ", "00.000.000/0001-00")}
+        ${field("Telefone", "(98) 90000-0000")}
+        ${field("E-mail", "cliente@lexos.demo")}
+        ${selectField("Status", ["Ativo", "Em atenção", "Arquivado"])}
+        ${selectField("Responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis"])}
+        ${selectField("Situação operacional", ["Operação regular", "Em atenção", "Sem retorno", "Cobrança pendente"])}
+        <button class="btn primary" type="submit">Salvar cliente no modo demo</button>
+      </form>
+    `;
   }
 
   if (normalized.includes("novo processo") || normalized.includes("lançar processo") || normalized.includes("criar processo")) {
-    return formShell("Processo", [
-      field("Título do processo", "Ação de cobrança contratual"),
-      selectField("Cliente vinculado", state.clients.map((client) => client.name)),
-      selectField("Área", ["Cível", "Trabalhista", "Tributário", "Consumidor", "Empresarial"]),
-      selectField("Risco", ["Baixo", "Médio", "Alto"]),
-      selectField("Responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis"]),
-    ]);
+    return `
+      <form class="drawer-form" data-case-form>
+        ${field("Título do processo", "Ação de cobrança contratual")}
+        ${selectField("Cliente vinculado", state.clients.map((client) => client.name))}
+        ${selectField("Área", ["Cível", "Trabalhista", "Tributário", "Consumidor", "Empresarial"])}
+        ${selectField("Status processual", ["Em andamento", "Em acompanhamento", "Suspenso", "Arquivado", "Aguardando movimentação"])}
+        ${selectField("Prioridade operacional", ["Não urgente", "Baixa", "Normal", "Alta", "Urgente", "Revisão urgente", "Exige decisão"])}
+        ${selectField("Próxima ação", ["Analisar intimação", "Elaborar peça", "Revisar peça", "Protocolar", "Aguardar cliente", "Exige decisão", "Acompanhar movimentação"])}
+        ${selectField("Risco", ["Baixo", "Médio", "Alto"])}
+        ${selectField("Responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis"])}
+        ${field("Próximo prazo", "2026-06-30")}
+        <button class="btn primary" type="submit">Salvar processo no modo demo</button>
+      </form>
+    `;
   }
 
   if (normalized.includes("nova tarefa") || normalized.includes("criar tarefa")) {
@@ -1646,7 +1953,7 @@ function actionContent(title) {
         ${selectField("Status", ["Aberta", "Em andamento", "Em atenção", "Aguardando terceiro", "Aguardando cliente", "Concluída", "Atrasada", "Cancelada"])}
         ${selectField("Prioridade", ["Normal", "Alta", "Urgente"])}
         ${selectField("Cliente opcional", ["Sem cliente", ...state.clients.map((client) => client.name)])}
-        ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.id} · ${item.title}`)])}
+        ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.title} · ${clientName(item.clientId)}`)])}
         ${selectField("Responsável", ["Sem responsável", "Marina Costa", "Rafael Lima", "Bianca Reis"])}
         ${field("Prazo", "Hoje, 17:00")}
         <button class="btn primary" type="submit">Salvar tarefa no modo demo</button>
@@ -1661,7 +1968,7 @@ function actionContent(title) {
         ${selectField("Tipo", ["Audiência", "Reunião", "Atendimento", "Prazo", "Diligência", "Protocolo", "Ligação", "Retorno ao cliente", "Perícia", "Intimação", "Reunião interna", "Tarefa administrativa", "Financeiro", "Outro"])}
         ${field("Tipo personalizado", "")}
         ${selectField("Cliente opcional", ["Sem cliente", ...state.clients.map((client) => client.name)])}
-        ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.id} · ${item.title}`)])}
+        ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.title} · ${clientName(item.clientId)}`)])}
         ${field("Data", "2026-06-18")}
         ${field("Hora inicial", "14:30")}
         ${field("Hora final", "15:30")}
@@ -1679,7 +1986,7 @@ function actionContent(title) {
         ${selectField("Tipo", ["Entrada", "Saída"])}
         ${selectField("Categoria", ["Recebível", "Recebido", "Despesa administrativa", "Despesa processual", "Custas", "Diligência", "Pagamento de terceiro"])}
         ${selectField("Cliente opcional", ["Sem cliente", ...state.clients.map((client) => client.name)])}
-        ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.id} · ${item.title}`)])}
+        ${selectField("Processo opcional", ["Sem processo", ...state.cases.map((item) => `${item.title} · ${clientName(item.clientId)}`)])}
         ${field("Descrição", "Honorários mensais")}
         ${field("Valor", "8500")}
         ${selectField("Status", ["A receber", "Recebido", "Vencido", "Pendente", "Pago", "Cancelado"])}
@@ -1718,6 +2025,34 @@ function actionContent(title) {
     const eventTitle = title.replace(/^Detalhe do evento:\s*/, "");
     const event = state.agenda.find((item) => item.title === eventTitle) || state.agenda[0];
     return eventDetailContent(event);
+  }
+
+  if (normalized.includes("abrir detalhes")) {
+    const context = title.split(":").slice(1).join(":").trim();
+    const client = state.clients.find((item) => item.name === context);
+    if (client) return clientDetailContent(client);
+  }
+
+  if (normalized.includes("abrir processo") || normalized.includes("ver processo")) {
+    const context = title.split(":").slice(1).join(":").trim();
+    const item = state.cases.find((current) => current.title === context || context.includes(current.title));
+    if (item) return processDetailContent(item);
+  }
+
+  if (normalized.includes("exportar") || normalized.includes("relatório beta")) {
+    return betaNotice("Exportação em Beta", "Este recurso está preparado para PDF, CSV e Excel. A exportação completa será ativada quando a camada de relatórios/back-end estiver conectada.");
+  }
+
+  if (normalized.includes("permiss") || normalized.includes("gestão de acessos")) {
+    return betaNotice("Permissões avançadas em Beta", "Perfis por módulo, dados financeiros sensíveis e visão por responsável dependem de autenticação conectada e regras no back-end.");
+  }
+
+  if (normalized.includes("gmail") || normalized.includes("n8n") || normalized.includes("integração")) {
+    return betaNotice("Integração Gmail/N8N em Beta", "Status atual: não conectado. Credenciais, webhooks e automações devem ser configurados em ambiente seguro, sem segredos no front-end.");
+  }
+
+  if (normalized.includes("ia") || normalized.includes("sugerir") || normalized.includes("classificar")) {
+    return betaNotice("IA assistida em Beta", "A interface está pronta para sugestões e resumos supervisionados. Chamadas reais dependem da API de IA e revisão humana.");
   }
 
   if (normalized.includes("abrir detalhes") || normalized.includes("abrir processo") || normalized.includes("abrir cliente") || normalized.includes("ver cliente") || normalized.includes("ver financeiro")) {
@@ -1783,7 +2118,7 @@ function eventDetailContent(event) {
   return `
     <div class="drawer-body">
       <div class="event-detail">
-        <span class="record-meta">${event.id} · ${event.type}</span>
+        <span class="record-meta">${event.type} · ${event.status}</span>
         <h3>${event.title}</h3>
         <p>${event.date}</p>
         <div class="badges">
@@ -1804,6 +2139,71 @@ function eventDetailContent(event) {
       </div>
     </div>
   `;
+}
+
+function clientDetailContent(client) {
+  const cases = linkedCases(client.id);
+  const tasks = state.tasks.filter((task) => task.clientId === client.id);
+  const events = state.agenda.filter((event) => event.clientId === client.id);
+  const finance = state.finance.filter((item) => item.clientId === client.id);
+  const pending = finance.filter((item) => item.status === "Vencido" || item.status === "A receber" || item.status === "Pendente").reduce((sum, item) => sum + item.amount, 0);
+  const contact = clientContact(client);
+  return `
+    <div class="drawer-body client-detail">
+      <div class="detail-hero">
+        <div>
+          <span class="record-meta">${client.type} · ${client.status}</span>
+          <h3>${client.name}</h3>
+          <p>${cases.length} processo(s) · ${tasks.filter((task) => task.status !== "Concluída").length} tarefa(s) aberta(s) · ${events.length} evento(s) · ${money(pending)} pendente</p>
+        </div>
+        <div class="badges">${riskBadge(client.situation)}${client.pendingBilling ? riskBadge("Cobrança pendente") : ""}</div>
+      </div>
+      <div class="detail-tabs">
+        <section><h4>Dados cadastrais</h4><p>${contact.document}<br>${contact.phone}<br>${contact.email}<br>Responsável: ${client.owner}</p></section>
+        <section><h4>Processos</h4>${cases.map((item) => `<p>${caseTitle(item.id)} · ${caseOperational(item).prioridade}</p>`).join("") || "<p>Sem processo vinculado.</p>"}</section>
+        <section><h4>Tarefas</h4>${tasks.map((task) => `<p>${task.title} · ${task.status}</p>`).join("") || "<p>Sem tarefas vinculadas.</p>"}</section>
+        <section><h4>Agenda</h4>${events.map((event) => `<p>${event.title} · ${event.date}</p>`).join("") || "<p>Sem eventos futuros.</p>"}</section>
+        <section><h4>Financeiro</h4>${finance.map((item) => `<p>${item.description} · ${item.status} · ${money(item.amount)}</p>`).join("") || "<p>Sem lançamentos vinculados.</p>"}</section>
+        <section><h4>Documentos ${betaBadge()}</h4><p>Área preparada para anexos e documentos quando o armazenamento seguro for ativado.</p></section>
+        <section><h4>Histórico</h4>${timelineList(entityTimeline("cliente", client.id))}</section>
+        <section><h4>Observações</h4><p>Observações internas serão sincronizadas na fase conectada.</p></section>
+      </div>
+      <div class="table-actions">
+        <button class="btn" data-action="simulate" data-title="Criar processo: ${escapeAttr(client.name)}">Novo processo</button>
+        <button class="btn" data-action="simulate" data-title="Criar tarefa: ${escapeAttr(client.name)}">Nova tarefa</button>
+        <button class="btn" data-action="simulate" data-title="Adicionar evento">Novo evento</button>
+        <button class="btn" data-action="simulate" data-title="Nova cobrança">Lançar financeiro</button>
+      </div>
+    </div>
+  `;
+}
+
+function processDetailContent(item) {
+  const op = caseOperational(item);
+  return `
+    <div class="drawer-body client-detail">
+      <div class="detail-hero">
+        <div>
+          <span class="record-meta">${item.area} · ${caseNumber(item.id)}</span>
+          <h3>${item.title}</h3>
+          <p>${clientName(item.clientId)} · responsável: ${item.owner}</p>
+        </div>
+        <div class="badges">${riskBadge(op.statusPrincipal)}${riskBadge(op.prioridade)}${op.decision ? riskBadge("Exige decisão") : ""}${op.review ? riskBadge("Revisão urgente") : ""}</div>
+      </div>
+      <div class="detail-tabs">
+        <section><h4>Status processual</h4><p>${op.statusPrincipal}</p></section>
+        <section><h4>Prioridade operacional</h4><p>${op.prioridade}</p></section>
+        <section><h4>Próxima ação</h4><p>${item.proximaAcao || op.prioridade || "Acompanhar movimentação"}</p></section>
+        <section><h4>Prazo</h4><p>${item.deadline} · ${item.nextDeadline || "sem data"}</p></section>
+        <section><h4>Histórico</h4>${timelineList(entityTimeline("processo", item.id))}</section>
+        <section><h4>IA operacional ${betaBadge()}</h4><p>Sugerir prioridade, próxima ação e resumo depende da API de IA configurada.</p></section>
+      </div>
+    </div>
+  `;
+}
+
+function timelineList(items) {
+  return `<ol class="timeline">${items.map((item) => `<li>${item}</li>`).join("") || "<li>Histórico preparado para auditoria futura.</li>"}</ol>`;
 }
 
 function field(label, value) {
@@ -1889,6 +2289,8 @@ function openInternalWindow(title, content) {
 }
 
 function bindOperationalForms(drawer) {
+  bindClientForm(drawer);
+  bindCaseForm(drawer);
   bindTaskForm(drawer);
   bindEventForm(drawer);
   bindFinanceForm(drawer);
@@ -1899,7 +2301,67 @@ function selectedClientId(label) {
 }
 
 function selectedCaseId(label) {
-  return state.cases.find((item) => label?.startsWith(item.id))?.id || "";
+  return state.cases.find((item) => label?.startsWith(item.id) || label?.includes(item.title) || label?.includes(caseNumber(item.id)))?.id || "";
+}
+
+function bindClientForm(drawer) {
+  const form = drawer.querySelector("[data-client-form]");
+  if (!form) return;
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const [name, type, documentValue, phone, email, status, owner, situation] = [...form.querySelectorAll("input, select")].map((item) => item.value.trim());
+    state.clients.unshift({
+      id: `CLI-${Math.floor(Math.random() * 800 + 200)}`,
+      name,
+      type,
+      status,
+      owner,
+      situation,
+      document: documentValue,
+      email,
+      phone,
+      createdAt: "2026-06-22",
+      updatedAt: "2026-06-22",
+      lastContact: "hoje",
+      pendingBilling: situation === "Cobrança pendente",
+      activeCase: false,
+    });
+    saveData();
+    toast("Cliente salvo no modo demo.");
+    drawer.classList.add("hidden");
+    renderPage();
+  });
+}
+
+function bindCaseForm(drawer) {
+  const form = drawer.querySelector("[data-case-form]");
+  if (!form) return;
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const [title, clientLabel, area, statusPrincipal, priority, nextAction, risk, owner, deadline] = [...form.querySelectorAll("input, select")].map((item) => item.value.trim());
+    state.cases.unshift({
+      id: `PROC-${Math.floor(Math.random() * 800 + 1200)}`,
+      clientId: selectedClientId(clientLabel) || state.clients[0]?.id || "",
+      title,
+      area,
+      status: statusPrincipal === "Arquivado" ? "Arquivado" : statusPrincipal === "Em acompanhamento" ? "Em atenção" : "Ativo",
+      statusPrincipal,
+      prioridadeOperacional: priority,
+      proximaAcao: nextAction,
+      exigeDecisao: priority === "Exige decisão" || nextAction === "Exige decisão",
+      revisaoUrgente: priority === "Revisão urgente",
+      risk,
+      owner,
+      deadline: deadline ? `prazo em ${deadline}` : "sem prazo",
+      nextDeadline: deadline,
+      lastMove: "hoje",
+      value: 0,
+    });
+    saveData();
+    toast("Processo salvo no modo demo.");
+    drawer.classList.add("hidden");
+    renderPage();
+  });
 }
 
 function bindTaskForm(drawer) {

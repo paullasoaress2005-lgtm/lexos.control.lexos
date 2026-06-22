@@ -799,6 +799,39 @@ html[data-theme="light"] .theme-toggle:focus-visible {
   gap: 8px;
 }
 
+.notification-trigger {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(180, 141, 104, 0.46);
+  border-radius: 10px;
+  background: rgba(180, 141, 104, 0.12);
+  color: var(--accent);
+  font-family: "Segoe UI", sans-serif;
+  font-weight: 900;
+}
+
+.notification-trigger strong {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+}
+
+html[data-theme="light"] .notification-trigger {
+  background: #fff7e8;
+  color: #846449;
+}
+
 .office-profile {
   position: relative;
   min-width: 280px;
@@ -968,6 +1001,76 @@ html[data-theme="light"] .front-card span {
   font-family: "Segoe UI", sans-serif;
   font-size: 13px;
   line-height: 1.35;
+}
+
+.action-center {
+  margin-top: 14px;
+}
+
+.action-grid,
+.beta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.action-card,
+.beta-card {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(234, 244, 255, 0.045);
+  color: var(--ink);
+  text-align: left;
+}
+
+.action-card h3,
+.beta-card h3 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.action-card p,
+.beta-card p,
+.beta-notice p {
+  margin: 0;
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.action-card strong {
+  justify-self: end;
+  color: var(--accent);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.beta-grid {
+  margin-bottom: 16px;
+}
+
+.badge.beta {
+  border-color: rgba(180, 141, 104, 0.42);
+  background: rgba(180, 141, 104, 0.15);
+  color: var(--accent);
+}
+
+html[data-theme="light"] .action-card,
+html[data-theme="light"] .beta-card {
+  border-color: #dce8f2;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 30px rgba(8, 18, 42, 0.06);
 }
 
 .profile-editor {
@@ -1579,9 +1682,62 @@ button.front-card {
   margin-bottom: 6px;
 }
 
+.module-empty .btn {
+  margin-top: 12px;
+}
+
 .filterable-card.hidden,
 .module-empty.hidden {
   display: none;
+}
+
+.quick-views,
+.bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 14px;
+}
+
+.quick-view {
+  min-height: 34px;
+  border: 1px solid rgba(0, 178, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(0, 178, 255, 0.08);
+  color: var(--brand);
+  padding: 7px 12px;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.bulk-actions {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(234, 244, 255, 0.04);
+}
+
+.bulk-actions label,
+.bulk-actions span {
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.select-row {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+.select-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand);
 }
 
 html[data-theme="light"] .module-filter-panel {
@@ -1594,6 +1750,17 @@ html[data-theme="light"] .filter-chips button {
   border-color: #b9e8fa;
   background: #e1f6fe;
   color: #0578b5;
+}
+
+html[data-theme="light"] .quick-view {
+  border-color: #b9e8fa;
+  background: #e1f6fe;
+  color: #063459;
+}
+
+html[data-theme="light"] .bulk-actions {
+  border-color: #dce8f2;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .client-layout {
@@ -1664,6 +1831,7 @@ html[data-theme="light"] .filter-chips button {
 }
 
 .client-card {
+  position: relative;
   min-width: 0;
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
@@ -1811,6 +1979,7 @@ html[data-theme="light"] .filter-chips button {
 }
 
 .case-card {
+  position: relative;
   padding: 15px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -1948,6 +2117,7 @@ html[data-theme="light"] .filter-chips button {
 }
 
 .finance-card {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
@@ -1978,6 +2148,69 @@ html[data-theme="light"] .filter-chips button {
 .finance-card .badges,
 .finance-actions {
   grid-column: 1 / -1;
+}
+
+.detail-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(234, 244, 255, 0.045);
+}
+
+.detail-hero h3 {
+  margin: 4px 0 6px;
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.detail-hero p,
+.detail-tabs p {
+  margin: 0;
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.detail-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.detail-tabs section {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(234, 244, 255, 0.035);
+}
+
+.detail-tabs h4 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.timeline {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-family: "Segoe UI", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+html[data-theme="light"] .detail-hero,
+html[data-theme="light"] .detail-tabs section {
+  border-color: #dce8f2;
+  background: #f8fbfe;
 }
 
 .finance-guard {
@@ -2748,6 +2981,9 @@ html[data-theme="light"] .table tr:hover td {
   .grid.metrics,
   .grid.three,
   .grid.two,
+  .action-grid,
+  .beta-grid,
+  .detail-tabs,
   .agenda-actions,
   .filters,
   .map-grid,
@@ -2883,6 +3119,20 @@ html[data-theme="light"] .table tr:hover td {
   }
 
   .module-filter-footer {
+    flex-direction: column;
+  }
+
+  .quick-views,
+  .bulk-actions {
+    align-items: stretch;
+  }
+
+  .quick-view,
+  .bulk-actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .detail-hero {
     flex-direction: column;
   }
 
