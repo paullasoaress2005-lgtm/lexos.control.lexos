@@ -213,6 +213,72 @@ const demoSeed = {
       status: "Próximo",
     },
   ],
+  notices: [
+    {
+      id: "INT-701",
+      title: "Intimação para manifestação em defesa trabalhista",
+      source: "PJe Trabalhista",
+      channel: "Diário eletrônico",
+      caseId: "PROC-1034",
+      clientId: "CLI-002",
+      receivedAt: "Hoje, 08:42",
+      status: "Nova",
+      classification: "Prazo crítico",
+      owner: "Rafael Lima",
+      deadline: "Hoje, 17:00",
+      action: "Criar tarefa e revisar prazo",
+      risk: "Crítico",
+      read: false,
+    },
+    {
+      id: "INT-702",
+      title: "Publicação de despacho em cobrança contratual",
+      source: "TJMA",
+      channel: "Termo monitorado",
+      caseId: "PROC-1029",
+      clientId: "CLI-001",
+      receivedAt: "Ontem, 16:20",
+      status: "Em análise",
+      classification: "Andamento",
+      owner: "Marina Costa",
+      deadline: "Em 2 dias",
+      action: "Registrar andamento",
+      risk: "Médio",
+      read: false,
+    },
+    {
+      id: "INT-703",
+      title: "Prazo de manifestação em mandado de segurança",
+      source: "TRF1",
+      channel: "Intimação eletrônica",
+      caseId: "PROC-1041",
+      clientId: "CLI-003",
+      receivedAt: "18/06/2026, 11:05",
+      status: "Classificada",
+      classification: "Prazo",
+      owner: "Bianca Reis",
+      deadline: "Em 6 dias",
+      action: "Vincular à agenda",
+      risk: "Próximo",
+      read: true,
+    },
+    {
+      id: "INT-704",
+      title: "Termo encontrado para cliente sem processo vinculado",
+      source: "Diário oficial",
+      channel: "Busca por termo",
+      caseId: "",
+      clientId: "CLI-001",
+      receivedAt: "17/06/2026, 09:15",
+      status: "Pendente",
+      classification: "Triagem",
+      owner: "Sem responsável",
+      deadline: "Sem prazo definido",
+      action: "Validar vínculo com cliente",
+      risk: "Em atenção",
+      read: false,
+    },
+  ],
   finance: [
     {
       id: "FIN-401",
@@ -319,12 +385,61 @@ const demoSeed = {
       created: "Ontem, 16:40",
     },
   ],
+  partners: [
+    {
+      id: "PAR-801",
+      name: "Rede Trabalhista Norte",
+      specialty: "Audiências trabalhistas",
+      city: "São Luís/MA",
+      status: "Ativo",
+      owner: "Rafael Lima",
+      activeDemands: 12,
+      pendingFrom: "Parceiro",
+      lastAction: "Confirmar pauta de audiência",
+      responseSla: "4h",
+      rating: "Prioritário",
+      email: "trabalhista.norte@parceiro.demo",
+      phone: "(98) 98888-8801",
+    },
+    {
+      id: "PAR-802",
+      name: "Cível Prime Correspondentes",
+      specialty: "Diligências e protocolos",
+      city: "Imperatriz/MA",
+      status: "Em acompanhamento",
+      owner: "Marina Costa",
+      activeDemands: 8,
+      pendingFrom: "Escritório",
+      lastAction: "Enviar documentos para protocolo",
+      responseSla: "1 dia",
+      rating: "Regular",
+      email: "civelprime@parceiro.demo",
+      phone: "(99) 98888-8802",
+    },
+    {
+      id: "PAR-803",
+      name: "Perícia Lex",
+      specialty: "Cálculos e perícias",
+      city: "Teresina/PI",
+      status: "Ativo",
+      owner: "Bianca Reis",
+      activeDemands: 5,
+      pendingFrom: "Sem pendência",
+      lastAction: "Revisar proposta de cálculo",
+      responseSla: "2 dias",
+      rating: "Especialista",
+      email: "pericialex@parceiro.demo",
+      phone: "(86) 98888-8803",
+    },
+  ],
 };
 
 const navItems = [
   ["dashboard", "dashboard", "Dashboard"],
   ["clientes", "client", "Clientes"],
+  ["parceiros", "network", "Parceiros"],
   ["processos", "scale", "Processos"],
+  ["intimacoes", "notice", "Intimações"],
   ["tarefas", "task", "Tarefas"],
   ["agenda", "calendar", "Agenda"],
   ["financeiro", "finance", "Financeiro"],
@@ -365,7 +480,7 @@ function saveData() {
 
 function normalizeData(data) {
   const next = { ...structuredClone(demoSeed), ...data };
-  ["clients", "cases", "tasks", "agenda", "finance", "reports", "centralHistory"].forEach((key) => {
+  ["clients", "cases", "notices", "tasks", "agenda", "finance", "reports", "centralHistory", "partners"].forEach((key) => {
     const existing = Array.isArray(data?.[key]) ? data[key] : [];
     const byId = new Map(existing.map((item) => [item.id, item]));
     demoSeed[key].forEach((item) => {
@@ -398,7 +513,9 @@ function navIcon(icon) {
   const icons = {
     dashboard: `<svg ${svgAttrs}><path d="M4 10.5 12 4l8 6.5"/><path d="M6.5 9.5V20h11V9.5"/><path d="M10 20v-5h4v5"/></svg>`,
     client: `<svg ${svgAttrs}><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>`,
+    network: `<svg ${svgAttrs}><path d="M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M18 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M16 21a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M10.5 8.5 15.5 9"/><path d="m16.8 13.8-.5 1.2"/><path d="M10 10.5 13.5 15"/></svg>`,
     scale: `<svg ${svgAttrs}><path d="M12 3v18"/><path d="M5 6h14"/><path d="m7 6-4 7h8L7 6Z"/><path d="m17 6-4 7h8l-4-7Z"/></svg>`,
+    notice: `<svg ${svgAttrs}><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5"/><path d="M10 13h6"/><path d="M10 17h5"/><path d="M5 7H3v14h10"/></svg>`,
     task: `<svg ${svgAttrs}><path d="m5 13 4 4L19 7"/><path d="M4 4h16v16H4z"/></svg>`,
     calendar: `<svg ${svgAttrs}><path d="M7 3v4"/><path d="M17 3v4"/><path d="M4 8h16"/><path d="M5 5h14v16H5z"/><path d="M8 12h2"/><path d="M14 12h2"/><path d="M8 16h2"/></svg>`,
     finance: `<svg ${svgAttrs}><path d="M12 3c4.42 0 8 1.57 8 3.5S16.42 10 12 10 4 8.43 4 6.5 7.58 3 12 3Z"/><path d="M4 6.5v5C4 13.43 7.58 15 12 15s8-1.57 8-3.5v-5"/><path d="M4 11.5v5C4 18.43 7.58 20 12 20s8-1.57 8-3.5v-5"/></svg>`,
@@ -607,7 +724,7 @@ function moduleEmpty(scope, text) {
 }
 
 function riskBadge(value) {
-  const kind = value === "Alto" || value === "Atrasada" || value === "Vencido" || value === "Crítico" || value === "Revisão urgente" ? "danger" : value === "Médio" || value === "Em atenção" || value === "Urgente" || value === "Pendente" ? "warn" : "ok";
+  const kind = value === "Alto" || value === "Atrasada" || value === "Vencido" || value === "Crítico" || value === "Revisão urgente" ? "danger" : value === "Médio" || value === "Em atenção" || value === "Urgente" || value === "Pendente" || value === "Nova" || value === "Em análise" ? "warn" : "ok";
   return `<span class="badge ${kind}">${value}</span>`;
 }
 
@@ -851,7 +968,9 @@ function renderPage() {
   const pages = {
     dashboard: renderDashboard,
     clientes: renderClients,
+    parceiros: renderPartnerNetwork,
     processos: renderCases,
+    intimacoes: renderNotices,
     tarefas: renderTasks,
     agenda: renderAgenda2,
     financeiro: renderFinance,
@@ -878,7 +997,9 @@ function renderDashboard() {
   const attentionClients = state.clients.filter((client) => client.situation !== "Operação regular" && client.status !== "Arquivado").length;
   const riskyCases = state.cases.filter((item) => item.risk === "Alto" || item.deadline === "vencido").length;
   const overdueFinance = state.finance.filter((item) => item.status === "Vencido").reduce((sum, item) => sum + item.amount, 0);
+  const pendingNotices = state.notices.filter((item) => item.status !== "Classificada" || !item.read).length;
   const actionItems = [
+    ...state.notices.filter((item) => item.risk === "Crítico" || item.status === "Nova").map((item) => ({ title: item.title, text: `${item.source} · ${item.deadline}`, tags: ["Intimação", item.classification], route: "intimacoes" })),
     ...state.cases.filter((item) => caseOperational(item).decision).map((item) => ({ title: caseTitle(item.id), text: `${caseOperational(item).prioridade} · ${item.owner}`, tags: ["Processo", "Decisão"], route: "processos" })),
     ...state.tasks.filter((item) => item.status === "Atrasada").map((item) => ({ title: item.title, text: `${taskInfo(item).clientLabel} · ${item.owner}`, tags: ["Tarefa", "Atrasada"], route: "tarefas" })),
     ...state.agenda.filter((item) => agendaDay(item) === 18).map((item) => ({ title: item.title, text: `${item.date} · ${agendaOwners(item).join(", ")}`, tags: ["Agenda", item.type], route: "agenda" })),
@@ -890,6 +1011,7 @@ function renderDashboard() {
     <section class="grid metrics">
       ${metric("Clientes ativos", state.clients.filter((item) => item.status === "Ativo").length, `${attentionClients} em atenção`, "clientes")}
       ${metric("Processos", state.cases.length, `${riskyCases} com risco ou prazo crítico`, "processos")}
+      ${metric("Intimações", pendingNotices, "pendentes de triagem", "intimacoes")}
       ${metric("Tarefas abertas", state.tasks.filter((item) => item.status !== "Concluída").length, `${overdueTasks} atrasada`, "tarefas")}
       ${metric("Financeiro vencido", money(overdueFinance), "sem cobrança automática", "financeiro")}
       ${metric("Central LEX.OS", state.centralHistory.length, "execuções supervisionadas", "central")}
@@ -922,7 +1044,9 @@ function renderDashboard() {
         <div class="panel-title"><h2>Mapa das frentes</h2><span>escritório</span></div>
         <div class="map-grid">
           ${front("Carteira", state.clients.length, "clientes monitorados", "clientes")}
+          ${front("Parceiros", state.partners.length, "rede ativa", "parceiros")}
           ${front("Processos em andamento", state.cases.length, "processos ativos", "processos")}
+          ${front("Intimações", pendingNotices, "triagens pendentes", "intimacoes")}
           ${front("Operação", state.tasks.length, "providências abertas", "tarefas")}
           ${front("Agenda", state.agenda.length, "eventos da agenda", "agenda")}
           ${front("A receber", money(state.finance.filter((item) => financeType(item) === "Entrada" && item.status !== "Recebido").reduce((s, f) => s + f.amount, 0)), "recebíveis", "financeiro")}
@@ -975,6 +1099,64 @@ function renderClients() {
   `;
 }
 
+function renderPartnerNetwork() {
+  const active = state.partners.filter((item) => item.status === "Ativo").length;
+  const partnerPending = state.partners.filter((item) => item.pendingFrom === "Parceiro").length;
+  const officePending = state.partners.filter((item) => item.pendingFrom === "Escritório").length;
+  const totalDemands = state.partners.reduce((sum, item) => sum + Number(item.activeDemands || 0), 0);
+  return `
+    ${pageHeader("Parceiros", "Rede de parceiros e correspondentes", "Gestão demonstrativa de correspondentes, especialidades, demandas compartilhadas, pendências e histórico operacional.", '<button class="btn primary" data-action="simulate" data-title="Novo parceiro">Novo parceiro</button>')}
+    <section class="partner-brief">
+      <article>
+        <span>Rede ativa</span>
+        <strong>${active}</strong>
+        <em>parceiros prontos</em>
+      </article>
+      <article>
+        <span>Demandas</span>
+        <strong>${totalDemands}</strong>
+        <em>em acompanhamento</em>
+      </article>
+      <article>
+        <span>Pendência parceiro</span>
+        <strong>${partnerPending}</strong>
+        <em>aguardando retorno</em>
+      </article>
+      <article>
+        <span>Pendência escritório</span>
+        <strong>${officePending}</strong>
+        <em>exige envio interno</em>
+      </article>
+    </section>
+    ${moduleFilters("parceiros", "Buscar parceiro, cidade, especialidade, pendência ou responsável", [
+      { label: "Status", options: [{ value: "ativo", label: "Ativo" }, { value: "em acompanhamento", label: "Em acompanhamento" }] },
+      { label: "Especialidade", options: [{ value: "audiências", label: "Audiências" }, { value: "diligências", label: "Diligências" }, { value: "perícias", label: "Perícias/cálculos" }] },
+      { label: "Pendência", options: [{ value: "parceiro", label: "Com parceiro" }, { value: "escritório", label: "Com escritório" }, { value: "sem pendência", label: "Sem pendência" }] },
+      { label: "Responsável", options: [{ value: "marina costa", label: "Marina Costa" }, { value: "rafael lima", label: "Rafael Lima" }, { value: "bianca reis", label: "Bianca Reis" }] },
+    ])}
+    ${quickViews("parceiros", [
+      { label: "Ativos", value: "ativo" },
+      { label: "Com parceiro", value: "parceiro" },
+      { label: "Com escritório", value: "escritório" },
+      { label: "Especialistas", value: "especialista" },
+    ])}
+    ${bulkActions("parceiros", ["Solicitar atualização", "Enviar documentos", "Registrar retorno"])}
+    <section class="partner-layout">
+      <div class="partner-grid">
+        ${state.partners.map(partnerCard).join("")}
+        ${moduleEmpty("parceiros", "Nenhum parceiro combina com os filtros atuais.")}
+      </div>
+      <aside class="panel partner-side">
+        <div class="panel-title"><h2>Controle de rede</h2><span>Lexos</span></div>
+        <p>Área preparada para acompanhar parceiros externos sem envio automático de dados. Demandas, documentos e confirmações ficam sob revisão humana.</p>
+        <div class="partner-map">
+          ${state.partners.map((item) => `<button type="button" data-action="simulate" data-title="Histórico do parceiro: ${escapeAttr(item.name)}"><strong>${item.city.split("/")[0]}</strong><span>${item.specialty}</span></button>`).join("")}
+        </div>
+      </aside>
+    </section>
+  `;
+}
+
 function renderCases() {
   const columns = [
     ["Alto risco", (item) => item.risk === "Alto" || item.deadline === "vencido"],
@@ -1012,6 +1194,52 @@ function renderCases() {
         `;
       }).join("")}
       ${moduleEmpty("processos", "Nenhum processo combina com os filtros selecionados.")}
+    </section>
+  `;
+}
+
+function renderNotices() {
+  const newCount = state.notices.filter((item) => item.status === "Nova").length;
+  const critical = state.notices.filter((item) => item.risk === "Crítico").length;
+  const pending = state.notices.filter((item) => item.status === "Pendente" || item.status === "Em análise").length;
+  const classified = state.notices.filter((item) => item.status === "Classificada").length;
+  return `
+    ${pageHeader("Intimações", "Intimações e monitoramento", "Publicações, termos monitorados e intimações eletrônicas demonstrativas com triagem, classificação e criação supervisionada de providências.", '<button class="btn primary" data-action="simulate" data-title="Cadastrar termo monitorado">Cadastrar termo</button><button class="btn" data-action="simulate" data-title="Importar intimações Beta">Importar Beta</button>')}
+    <section class="notice-command">
+      <article class="notice-command-card danger"><span>Críticas</span><strong>${critical}</strong><em>exigem leitura hoje</em></article>
+      <article class="notice-command-card"><span>Novas</span><strong>${newCount}</strong><em>sem classificação final</em></article>
+      <article class="notice-command-card warn"><span>Em análise</span><strong>${pending}</strong><em>triagem aberta</em></article>
+      <article class="notice-command-card ok"><span>Classificadas</span><strong>${classified}</strong><em>já vinculadas</em></article>
+    </section>
+    ${moduleFilters("intimacoes", "Buscar intimação, origem, cliente, processo, classificação ou responsável", [
+      { label: "Status", options: [{ value: "nova", label: "Nova" }, { value: "em análise", label: "Em análise" }, { value: "pendente", label: "Pendente" }, { value: "classificada", label: "Classificada" }] },
+      { label: "Risco", options: [{ value: "crítico", label: "Crítico" }, { value: "médio", label: "Médio" }, { value: "próximo", label: "Próximo" }, { value: "em atenção", label: "Em atenção" }] },
+      { label: "Canal", options: [{ value: "diário eletrônico", label: "Diário eletrônico" }, { value: "intimação eletrônica", label: "Intimação eletrônica" }, { value: "termo monitorado", label: "Termo monitorado" }, { value: "busca por termo", label: "Busca por termo" }] },
+      { label: "Responsável", options: [{ value: "marina costa", label: "Marina Costa" }, { value: "rafael lima", label: "Rafael Lima" }, { value: "bianca reis", label: "Bianca Reis" }, { value: "sem responsável", label: "Sem responsável" }] },
+    ])}
+    ${quickViews("intimacoes", [
+      { label: "Novas", value: "nova" },
+      { label: "Críticas", value: "crítico" },
+      { label: "Sem responsável", value: "sem responsável" },
+      { label: "Classificadas", value: "classificada" },
+    ])}
+    ${bulkActions("intimacoes", ["Criar tarefas selecionadas", "Marcar como lidas", "Enviar para revisão"])}
+    <section class="notice-layout">
+      <div class="notice-inbox">
+        ${state.notices.map(noticeCard).join("")}
+        ${moduleEmpty("intimacoes", "Nenhuma intimação combina com os filtros selecionados.")}
+      </div>
+      <aside class="panel notice-side">
+        <div class="panel-title"><h2>Triagem assistida</h2><span>supervisão</span></div>
+        <p>Fluxo demonstrativo inspirado em controladoria jurídica: captura, leitura, vínculo, classificação, prazo e providência. Nenhuma intimação real é capturada nesta versão.</p>
+        <ul class="check-list">
+          <li>Classificar publicação antes de criar tarefa.</li>
+          <li>Validar vínculo com cliente e processo.</li>
+          <li>Confirmar prazo com revisão humana.</li>
+          <li>Registrar andamento somente após validação.</li>
+        </ul>
+        <button class="btn" type="button" data-shortcut="central">Apoio da Central LEX.OS</button>
+      </aside>
     </section>
   `;
 }
@@ -1415,7 +1643,7 @@ function renderProfile() {
 }
 
 function renderOnboarding() {
-  const steps = ["Configurações", "Clientes", "Processos", "Tarefas", "Agenda", "Financeiro", "Painel dos Sócios", "Relatórios", "Central LEX.OS"];
+  const steps = ["Configurações", "Clientes", "Parceiros", "Processos", "Intimações", "Tarefas", "Agenda", "Financeiro", "Painel dos Sócios", "Relatórios", "Central LEX.OS"];
   return `
     ${pageHeader("Onboarding", "Roteiro guiado para começar", "Sequência prática para configurar o escritório e colocar a operação em uso.")}
     <section class="grid">
@@ -1494,6 +1722,79 @@ function actionButtons(actions, context) {
   return `<div class="table-actions">${actions.map((action) => `<button class="btn" data-action="simulate" data-title="${action}: ${context}">${action}</button>`).join("")}</div>`;
 }
 
+function noticeCard(item) {
+  const linkedCase = item.caseId ? caseTitle(item.caseId) : "Sem processo vinculado";
+  const linkedClient = item.clientId ? clientName(item.clientId) : "Sem cliente vinculado";
+  const tags = filterTags([item.status, item.risk, item.channel, item.source, item.classification, item.owner, item.caseId ? "com-processo" : "sem-processo", item.clientId ? "com-cliente" : "sem-cliente"]);
+  const search = [item.id, item.title, item.source, item.channel, item.status, item.classification, item.owner, item.deadline, linkedCase, linkedClient, item.action].join(" ");
+  return `
+    <article class="notice-card filterable-card ${item.read ? "is-read" : "is-unread"}" data-filter-item="intimacoes" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
+      <label class="select-row"><input type="checkbox" data-row-select="intimacoes" /></label>
+      <div class="notice-ribbon">
+        <span>${item.source}</span>
+        <strong>${item.receivedAt}</strong>
+      </div>
+      <div class="notice-card-main">
+        <div class="record-head">
+          <div>
+            <span class="record-meta">${item.channel} · ${item.id}</span>
+            <h2>${item.title}</h2>
+            <p>${linkedClient} · ${linkedCase}</p>
+          </div>
+          ${riskBadge(item.risk)}
+        </div>
+        <div class="notice-meta-grid">
+          <span><strong>Status</strong>${item.status}</span>
+          <span><strong>Classificação</strong>${item.classification}</span>
+          <span><strong>Prazo</strong>${item.deadline}</span>
+          <span><strong>Responsável</strong>${item.owner}</span>
+        </div>
+        <div class="notice-action-line">
+          <span>${item.action}</span>
+          <div class="badges">${riskBadge(item.status)}${item.read ? riskBadge("Lida") : riskBadge("Nova")}</div>
+        </div>
+        <div class="notice-actions">
+          ${actionButtons(["Ler intimação", "Criar tarefa", "Classificar", "Registrar andamento"], item.title)}
+          <button class="btn" type="button" data-shortcut="${item.caseId ? "processos" : "clientes"}">Abrir vínculo</button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function partnerCard(item) {
+  const tags = filterTags([item.status, item.specialty, item.city, item.pendingFrom, item.owner, item.rating]);
+  const search = [item.id, item.name, item.specialty, item.city, item.status, item.owner, item.pendingFrom, item.lastAction, item.email, item.phone, item.rating].join(" ");
+  return `
+    <article class="partner-card filterable-card" data-filter-item="parceiros" data-search="${escapeAttr(search.toLowerCase())}" data-tags="${escapeAttr(tags)}">
+      <label class="select-row"><input type="checkbox" data-row-select="parceiros" /></label>
+      <div class="partner-seal"><span>${item.name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</span></div>
+      <div class="partner-main">
+        <div class="partner-head">
+          <div>
+            <span class="record-meta">${item.city} · ${item.specialty}</span>
+            <h2>${item.name}</h2>
+            <p>${item.activeDemands} demanda(s) ativa(s) · SLA ${item.responseSla}</p>
+          </div>
+          ${riskBadge(item.status)}
+        </div>
+        <div class="partner-status-row">
+          <span><strong>Pendência</strong>${item.pendingFrom}</span>
+          <span><strong>Responsável</strong>${item.owner}</span>
+          <span><strong>Perfil</strong>${item.rating}</span>
+        </div>
+        <div class="partner-last-action">
+          <strong>Próxima ação</strong>
+          <p>${item.lastAction}</p>
+        </div>
+        <div class="partner-actions">
+          ${actionButtons(["Abrir parceiro", "Solicitar retorno", "Enviar documentos", "Registrar demanda"], item.name)}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
 function settingsCard(title, items) {
   return `<article class="panel"><div class="panel-title"><h2>${title}</h2><span>MVP</span></div><div class="list">${items.map((item) => `<p>${item}</p>`).join("")}</div></article>`;
 }
@@ -1502,7 +1803,9 @@ function onboardingText(step) {
   const map = {
     "Configurações": "Definir identidade, responsáveis, preferências e validação de ambiente demo.",
     "Clientes": "Cadastrar carteira inicial e marcar clientes em atenção, sem retorno ou inadimplentes.",
+    "Parceiros": "Cadastrar correspondentes, especialidades, cidades, pendências e SLA de retorno.",
     "Processos": "Vincular processos aos clientes e classificar status, risco, área e responsável.",
+    "Intimações": "Triar publicações, validar vínculo, classificar risco e criar providências supervisionadas.",
     "Tarefas": "Converter providências em fila operacional com prazo, urgência e responsável.",
     "Agenda": "Consolidar audiências, reuniões, follow-ups e prazos críticos.",
     "Financeiro": "Registrar recebíveis internos, vencimentos e cobranças pendentes.",
@@ -1593,6 +1896,7 @@ function markNotificationRead(id) {
 
 function buildNotifications() {
   return [
+    ...state.notices.filter((item) => !item.read || item.risk === "Crítico").map((item) => ({ id: `notice-${item.id}`, type: "Intimação pendente", title: item.title, route: "intimacoes", badge: item.risk, text: `${item.source} · ${item.deadline}` })),
     ...state.tasks.filter((task) => task.status === "Atrasada").map((task) => ({ id: `task-${task.id}`, type: "Tarefa vencida", title: task.title, route: "tarefas", badge: task.owner, text: `${task.owner} · prazo ${task.due}` })),
     ...state.tasks.filter((task) => String(task.due).toLowerCase().includes("hoje")).map((task) => ({ id: `task-today-${task.id}`, type: "Tarefa para hoje", title: task.title, route: "tarefas", badge: task.owner, text: taskInfo(task).clientLabel })),
     ...state.cases.filter((item) => caseOperational(item).decision).map((item) => ({ id: `decision-${item.id}`, type: "Processo exige decisão", title: caseTitle(item.id), route: "processos", badge: item.owner, text: `${item.area} · ${caseOperational(item).prioridade}` })),
@@ -1641,6 +1945,14 @@ function globalSearchEntries() {
       route: "clientes",
       haystack: [item.name, item.type, item.document, item.phone, item.email, item.owner, item.situation, ...linkedCases(item.id).map((caseItem) => `${caseItem.title} ${caseNumber(caseItem.id)}`)].join(" "),
     })),
+    ...state.partners.map((item) => ({
+      type: "Parceiro",
+      title: item.name,
+      subtitle: `${item.specialty} · ${item.city} · ${item.activeDemands} demanda(s)`,
+      badge: item.status,
+      route: "parceiros",
+      haystack: [item.name, item.specialty, item.city, item.status, item.owner, item.pendingFrom, item.lastAction, item.email, item.phone, item.rating].join(" "),
+    })),
     ...state.cases.map((item) => ({
       type: "Processo",
       title: `${item.title} · ${caseNumber(item.id)}`,
@@ -1648,6 +1960,14 @@ function globalSearchEntries() {
       badge: caseOperational(item).prioridade,
       route: "processos",
       haystack: [item.title, caseNumber(item.id), clientName(item.clientId), item.area, item.owner, item.status, item.risk, item.deadline, caseOperational(item).prioridade].join(" "),
+    })),
+    ...state.notices.map((item) => ({
+      type: "Intimação",
+      title: item.title,
+      subtitle: `${item.source} · ${item.deadline} · ${clientName(item.clientId)}`,
+      badge: item.risk,
+      route: "intimacoes",
+      haystack: [item.id, item.title, item.source, item.channel, item.status, item.classification, item.owner, item.deadline, clientName(item.clientId), caseTitle(item.caseId), item.action].join(" "),
     })),
     ...state.tasks.map((item) => ({
       type: "Tarefa",
@@ -2041,6 +2361,30 @@ function actionContent(title) {
     `;
   }
 
+  if (normalized.includes("novo parceiro")) {
+    return formShell("Parceiro ou correspondente", [
+      field("Nome do parceiro", "Correspondente Lexos Demo"),
+      selectField("Especialidade", ["Audiências", "Diligências", "Protocolos", "Cálculos/perícias", "Administrativo", "Outro"]),
+      field("Cidade/UF", "São Luís/MA"),
+      selectField("Status", ["Ativo", "Em acompanhamento", "Pausado"]),
+      selectField("Responsável interno", ["Marina Costa", "Rafael Lima", "Bianca Reis"]),
+      field("E-mail", "parceiro@lexos.demo"),
+      field("Telefone/WhatsApp", "(98) 90000-0000"),
+      textAreaField("Observações", "Registrar regras de acionamento, SLA e documentos necessários."),
+    ]);
+  }
+
+  if (normalized.includes("cadastrar termo monitorado")) {
+    return formShell("Termo monitorado", [
+      field("Termo ou variação", "Almeida & Torres"),
+      selectField("Origem monitorada", ["Diário eletrônico", "PJe", "e-SAJ", "Projudi", "TRF", "Outro"]),
+      selectField("Vincular cliente", state.clients.map((client) => client.name)),
+      selectField("Responsável pela triagem", ["Marina Costa", "Rafael Lima", "Bianca Reis", "Sem responsável"]),
+      selectField("Criticidade padrão", ["Normal", "Em atenção", "Crítico"]),
+      textAreaField("Observações", "Termo demonstrativo. Não há captura externa real nesta versão."),
+    ]);
+  }
+
   if (normalized.includes("novo processo") || normalized.includes("lançar processo") || normalized.includes("criar processo")) {
     return `
       <form class="drawer-form" data-case-form>
@@ -2220,6 +2564,28 @@ function actionContent(title) {
       selectField("Tipo de andamento", ["Petição protocolada", "Decisão", "Intimação", "Contato com cliente", "Observação interna"]),
       textAreaField("Descrição", "Registrar andamento com linguagem objetiva."),
       selectField("Gerar tarefa vinculada", ["Não", "Sim"]),
+    ]);
+  }
+
+  if (normalized.includes("ler intimação") || normalized.includes("classificar")) {
+    return formShell("Triagem de intimação", [
+      selectField("Classificação", ["Prazo crítico", "Prazo", "Andamento", "Despacho", "Sentença", "Triagem", "Sem providência"]),
+      selectField("Vínculo confirmado", ["Sim, processo localizado", "Sim, apenas cliente localizado", "Não, revisar manualmente"]),
+      selectField("Providência sugerida", ["Criar tarefa", "Registrar andamento", "Lançar prazo", "Vincular à agenda", "Arquivar após leitura"]),
+      selectField("Responsável", ["Marina Costa", "Rafael Lima", "Bianca Reis", "Sem responsável"]),
+      textAreaField("Observação da leitura", "Registrar decisão humana antes de qualquer movimentação."),
+    ]);
+  }
+
+  if (normalized.includes("importar intimações")) {
+    return betaNotice("Importação de intimações em Beta", "A tela está preparada para receber publicações e intimações de fontes conectadas, mas esta versão não consulta tribunais, e-mails ou APIs externas.");
+  }
+
+  if (normalized.includes("histórico do parceiro") || normalized.includes("abrir parceiro") || normalized.includes("solicitar retorno") || normalized.includes("registrar demanda")) {
+    return formShell("Gestão de parceiro", [
+      selectField("Tipo de registro", ["Solicitação de retorno", "Nova demanda", "Envio de documentos", "Atualização de SLA", "Observação interna"]),
+      selectField("Pendência atual", ["Com parceiro", "Com escritório", "Sem pendência"]),
+      textAreaField("Descrição", "Registrar andamento da demanda compartilhada."),
     ]);
   }
 
