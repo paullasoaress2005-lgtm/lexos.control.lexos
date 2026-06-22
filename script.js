@@ -864,7 +864,12 @@ function renderPage() {
   };
   const render = pages[currentPage] || pages.dashboard;
   if (!pages[currentPage]) currentPage = "dashboard";
-  document.getElementById("screen").innerHTML = render();
+  const screen = document.getElementById("screen");
+  screen.classList.remove("page-enter");
+  screen.innerHTML = render();
+  requestAnimationFrame(() => {
+    screen.classList.add("page-enter");
+  });
   bindActions2();
 }
 
